@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#197564">
+  <title>작은 탐험가의 영어섬 · Aiden과 Luca</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="curriculum.js"></script>
+  <script defer src="comics.js"></script>
+  <script defer src="core.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">학습 화면으로 바로 가기</a>
+  <header class="header">
+    <button class="brand" data-action="tab" data-value="map" aria-label="영어섬 탐험 지도"><span class="brand-mark" aria-hidden="true">✦</span><span>작은 탐험가의 <b>영어섬</b></span></button>
+    <div class="header-actions">
+      <div class="profiles" role="group" aria-label="탐험가 선택"><button data-action="profile" data-value="aiden" id="profile-aiden">Aiden</button><button data-action="profile" data-value="luca" id="profile-luca">Luca</button></div>
+      <button class="star-pill" data-action="tab" data-value="rewards" aria-label="모은 별과 탐험 배지"><span aria-hidden="true">★</span> <span id="stars">0</span></button>
+      <button class="settings-button" data-action="settings" aria-label="소리와 글자 설정">설정</button>
+    </div>
+  </header>
+  <nav id="nav" class="nav" aria-label="학습 메뉴"></nav>
+  <div id="notice" class="notice" role="status" hidden></div>
+  <main id="main" tabindex="-1"></main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="settings"><form method="dialog"><div class="dialog-title"><h2>편하게 배워요</h2><button aria-label="설정 닫기">닫기</button></div><label>한글 뜻도 읽어주기 <input type="checkbox" id="ko-speech" checked></label><label>영어 읽기 속도 <select id="speech-rate"><option value="0.7">천천히</option><option value="0.9" selected>보통</option><option value="1">자연스럽게</option></select></label><label>글자 크기 <select id="text-size"><option value="normal">크게</option><option value="large">아주 크게</option></select></label><p>호주 영어 음성을 우선 사용해요. 기기에 해당 음성이 없으면 다른 영어 음성으로 들려줘요.</p>
+    <section class="reset-section" aria-labelledby="reset-title">
+      <h3 id="reset-title">진행상황 초기화</h3>
+      <p>선택한 아이의 진도·별·배지를 지우고 Day 1부터 다시 시작해요.</p>
+      <div class="reset-actions"><button type="button" data-action="reset-profile" data-value="aiden">Aiden 초기화</button><button type="button" data-action="reset-profile" data-value="luca">Luca 초기화</button></div>
+      <div id="reset-confirmation" hidden><p id="reset-message"></p><div class="reset-actions"><button type="button" data-action="reset-cancel">취소</button><button type="button" class="reset-confirm" data-action="reset-confirm">초기화하기</button></div></div>
+      <p id="reset-status" role="status"></p>
+    </section>
+    <button class="primary">좋아요</button></form></dialog>
+  <noscript>학습을 시작하려면 브라우저에서 JavaScript를 켜 주세요.</noscript>
+</body>
+</html>

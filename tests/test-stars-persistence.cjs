@@ -69,7 +69,7 @@ const puppeteer = require('D:/Codes/Blogger_bot/node_modules/puppeteer');
     const value = await page.evaluate(() => {
       const ko = document.querySelector('.game-prompt .question').textContent;
       const en = window.CURRICULUM[1].words.find(w => w.ko === ko).en;
-      return [...document.querySelectorAll('[data-action="game-answer"]')].find(b => b.textContent === en).dataset.value;
+      return [...document.querySelectorAll('[data-action="game-answer"]')].find(b => (b.querySelector('strong')?.textContent.trim() || b.textContent.trim()) === en).dataset.value;
     });
     await page.click(`[data-action="game-answer"][data-value="${value}"]`);
     if (i < 5) {

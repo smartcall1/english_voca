@@ -332,6 +332,9 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .train-bank button{min-height:48px;padding:7px 20px;font-size:1.2rem;font-weight:850;border-radius:14px;border:2.5px solid #c4d1c3;box-shadow:0 4px 0 #b6c5b5}
 .train-actions{display:flex;justify-content:center;gap:14px;margin-top:2px;min-height:44px}
 .train-actions button{min-height:44px;padding:6px 22px;font-size:1.15rem;font-weight:850;border-radius:14px}
+button[data-action="game-next"]{position:relative;overflow:hidden;min-height:48px;padding:6px 24px;border-radius:16px;font-size:1.18rem;font-weight:850;box-shadow:0 5px 0 #0c4d40;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#197564,#125e50);border-color:#197564;color:#fff}
+.game-timer-progress{position:absolute;bottom:0;left:0;height:5px;background:linear-gradient(90deg,#ffe082,#ffd54f);width:100%;border-radius:0 3px 3px 0}
+@keyframes gameTimerShrink{from{width:100%}to{width:0%}}
 
 /* 듣고 배달하기: 배달 트럭 도로 및 오두막 우편함 */
 .delivery-route{position:relative;height:68px;border-bottom:8px dashed #c0ae95;margin:6px auto 10px;max-width:1080px;width:100%}
@@ -457,3 +460,54 @@ dialog-title{display:flex;align-items:center;justify-content:space-between;gap:1
 .region-tabs button:nth-child(4)[aria-pressed=true]{background:#386e51;border-color:#386e51}
 .region-tabs button:nth-child(5)[aria-pressed=true]{background:#80609d;border-color:#80609d}
 @media(max-width:560px){.map-node{width:34px;height:34px;min-height:34px;font-size:14px;border-width:2px}.node-label{font-size:10px;top:100%;padding:0 3px}.map-caption span{font-size:1rem}}
+
+/* Desktop game worlds: actions and feedback occupy the same play space. */
+.game-stage:has(.adventure-board){padding:14px 24px;min-height:0}
+.adventure-board{position:relative;border-radius:22px;padding:12px 20px;background:linear-gradient(#d9efce,#edf7df);overflow:hidden}
+.landscape-1{background:linear-gradient(#b6e6f3 35%,#77c9d0 36%,#c9eeeb)}
+.landscape-2{background:linear-gradient(#ded4f3,#f4e3b9)}
+.adventure-board.village{background:linear-gradient(#c8eafa 50%,#d8eabb 50%)}
+.adventure-caption{display:flex;justify-content:space-between;align-items:center;font-size:22px}
+.journey-meter{height:10px;background:#fff9;border-radius:10px;margin:8px 0;overflow:hidden}
+.journey-meter span{display:block;height:100%;background:#e9ad32;transition:width .6s}
+.world-actor{height:66px;display:flex;justify-content:center;align-items:center;gap:16px;transition:transform .8s}
+.world-actor>span{background:#fffdf1;padding:5px 14px;border-radius:18px;font-weight:700}
+.resolved .world-actor{transform:translateX(var(--travel,0px))}
+.adventure-board .game-prompt{padding:8px 14px;margin:6px auto 12px}
+.adventure-board .game-prompt p{margin:3px 0;font-size:22px}
+.adventure-board .question{font-size:34px;margin:2px}
+.world-destinations{display:flex;gap:16px;align-items:stretch;position:relative}
+.world-destinations .destination{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fffdf1;border:3px solid #8d9874;border-radius:20px;min-height:144px;padding:6px;font-size:28px;position:relative;transition:transform .25s,background .25s}
+.destination-art{font-size:44px;line-height:1.1;transition:transform .6s}
+.destination strong{overflow-wrap:anywhere;line-height:1.15}
+.arrival-mark{display:none}
+.destination.reached{background:#d4f0b8;transform:translateY(-5px)}
+.destination.reached .arrival-mark{display:block;position:absolute;right:5px;top:3px;font-size:25px}
+.destination.reached .destination-art{transform:scale(1.2) rotate(-8deg)}
+.resolved .destination:not(.reached){opacity:.55}
+.station-passengers{text-align:right;font-size:22px;color:#355d70;margin:8px 0}
+button.train-wagon{border:0;padding:0;background:transparent;box-shadow:none;min-height:0;cursor:pointer}
+.train-track.repairing{outline:3px dashed #dfad43;outline-offset:2px}
+.game-stage .feedback{margin:8px 0;min-height:30px;font-size:22px}
+.game-stage .train-actions{margin:6px 0}
+
+main:has(.game-stage) .session-heading{margin-bottom:8px}
+.game-stage{min-height:0;justify-content:flex-start}
+.game-stage .game-prompt{margin-top:0;margin-bottom:6px}
+.game-stage.train-stage{padding-top:8px;padding-bottom:8px}
+.station-passengers{margin:3px 0}
+.train-stage .train-track{min-height:76px;padding:5px 14px;gap:8px}
+.train-stage .train-bank{margin:6px auto;gap:6px}
+.train-stage .game-prompt p{margin:2px 0}
+.adventure-board{padding:8px 16px}
+.adventure-board .world-actor{height:54px}
+.adventure-board .world-actor svg{max-height:52px}
+.adventure-board .game-prompt{margin:4px auto 8px;padding:3px 12px}
+.adventure-board .destination{min-height:118px;padding:3px 6px}
+.destination-art{height:64px;width:100%;display:block}
+.destination-art svg{height:64px;width:100%}
+.world-destinations.mailboxes button:before{display:none}
+.world-door{transform-origin:center;transition:transform .6s,opacity .6s}
+.reached .world-door{transform:scaleX(.15);opacity:.4}
+.game-stage .feedback:empty{min-height:0;margin:0}
+.game-stage .train-actions:has(#game-next[hidden]){display:none}

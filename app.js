@@ -90,7 +90,7 @@
   }
 
   let profile = profiles[profileId], day = profile.currentDay, region = Math.floor((day - 1) / 10), tab = 'map';
-  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, quizAutoTimer, quizCountdownInterval, audioContext;
+  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, quizAutoTimer, quizCountdownInterval, gameAutoTimer, gameCountdownInterval, audioContext;
   let koreanSpeech = true, rate = .9;
   let pendingReset = null;
   function dismissReset() {
@@ -1052,7 +1052,7 @@
           <p>단어를 맞혀 보물을 찾고, 기차를 달리고, 소포를 배달해 봐요.</p>
         </div>
       </div>
-      <div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 연속으로 맞혀 금화를 모아요.','6개의 징검다리 · 갈림길 보물상자'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개 · 칸이 늘수록 높아지는 소리'],['delivery','van','듣고 배달하기','소리를 듣고 우편함에 배달해요. 다시 듣기 없이 맞히면 ⚡속달!','6번의 배달 · 속달 도전']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n}</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">하트 ❤️ 세 개로 시간제한 없이 도전해요. 하트를 다 써도 다시 채워 줄 테니 걱정 말아요. 별은 미션마다 한 번만 받아요.</p>`;
+      <div class="game-menu">${[['treasure','chest','보물길 탐험','단서를 읽고 숲길과 다리를 지나 보물 성문을 열어요.','숲길 · 다리 · 보물 성문'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개 · 승객을 태우고 역마다 출발'],['delivery','van','듣고 배달하기','소리를 듣고 우편함에 배달해요. 주문을 듣고 뜻이 맞는 집에 배달해요.','6번의 배달 · 틀린 단어 기억 도전']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n}</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">하트 ❤️ 세 개로 시간제한 없이 도전해요. 하트를 다 써도 다시 채워 줄 테니 걱정 말아요. 별은 미션마다 한 번만 받아요.</p>`;
   }
 
   const HEART_MAX = 3, FORK_STEPS = [1, 3];
@@ -1064,7 +1064,7 @@
     if(!game)return '';
     const hearts=Array.from({length:HEART_MAX},(_,i)=>`<span class="heart ${i<game.hearts?'':'lost'}">${i<game.hearts?'❤️':'🤍'}</span>`).join('');
     const extra=game.mode==='treasure'?`<span class="coin-pill">🪙 <b>${game.coins}</b></span>`
-      :game.mode==='delivery'?`<span class="coin-pill express">⚡ 속달 <b>${game.express}</b></span>`
+      :game.mode==='delivery'?`<span class="coin-pill express">📦 정확 배달 <b>${game.express}</b></span>`
       :`<span class="coin-pill train">🚃 <b>${game.index+(game.answered?1:0)}</b>대 완성</span>`;
     return `<span class="heart-row" aria-label="남은 하트 ${game.hearts}개">${hearts}</span>${extra}<span class="combo-pill ${game.streak>=2?'on':''}">${game.streak>=2?comboLabel(game.streak):'콤보를 쌓아 봐요'}</span>`;
   }
@@ -1075,7 +1075,12 @@
   }
   function loseHeart(message){
     if(!game)return;
-    game.wrong++;game.streak=0;game.hearts--;
+    game.wrong++;game.roundWrong++;game.streak=0;game.hearts--;
+    const wordId=game.queue[game.index];
+    if(!game.reviewed.has(wordId)){
+      game.reviewed.add(wordId);
+      game.queue.splice(Math.min(game.index+3,game.queue.length),0,wordId);
+    }
     chime('oops');
     if(game.hearts<=0){
       game.hearts=HEART_MAX;game.helps++;
@@ -1085,17 +1090,15 @@
     } else feedback(message,true);
     refreshHud();
   }
-  function clearAutoAdvance(){if(game?.autoTimer){clearTimeout(game.autoTimer);game.autoTimer=null;}}
-  function scheduleAdvance(delay){
-    clearAutoAdvance();
-    // 마지막 미션은 별 축하 연출을 끝까지 보여 주고, 아이가 직접 넘어가게 둬요
-    if(!game||game.index+1>=game.queue.length)return;
-    game.autoTimer=setTimeout(()=>{if(game)game.autoTimer=null;advanceGame();},delay);
+  function clearAutoAdvance(){
+    if(gameAutoTimer){clearTimeout(gameAutoTimer);gameAutoTimer=null;}
+    if(gameCountdownInterval){clearInterval(gameCountdownInterval);gameCountdownInterval=null;}
+    if(game?.autoTimer){clearTimeout(game.autoTimer);game.autoTimer=null;}
   }
   function advanceGame(){
     if(!game||!game.answered||game.fork)return;
     clearAutoAdvance();
-    game.index++;
+    game.index++;game.roundWrong=0;
     if(game.index===game.queue.length)mark('game');
     render();
     if(game.mode==='delivery'&&game.index<game.queue.length)speak(data().words[game.queue[game.index]].en);
@@ -1104,9 +1107,21 @@
     if(!['treasure','train','delivery'].includes(mode))return;
     clearAutoAdvance();
     game={mode,queue:C.shuffle(data().words.map((_,i)=>i)).slice(0,mode==='train'?3:6),index:0,answered:false,choices:[],tokens:[],selected:[],wrong:0,
-      streak:0,bestStreak:0,hearts:HEART_MAX,coins:0,express:0,helps:0,fork:null,autoTimer:null};
+      streak:0,bestStreak:0,hearts:HEART_MAX,coins:0,express:0,helps:0,roundWrong:0,reviewed:new Set(),fork:null,autoTimer:null};
+    if(mode==='train')game.queue.sort((a,b)=>data().words[a].example.split(/\s+/).length-data().words[b].example.split(/\s+/).length);
     render();
     if(mode==='delivery')speak(data().words[game.queue[0]].en);
+  }
+
+  function destinationArt(treasure,chapter,index){
+    const colours=['#d88350','#4d92aa','#9175ad','#659b61'];
+    const colour=colours[index];
+    let shape;
+    if(!treasure)shape=`<path d="M20 42L60 10l40 32" fill="${colour}" stroke="#624c3f" stroke-width="4"/><path d="M27 42h66v49H27z" fill="#fff0cb" stroke="#624c3f" stroke-width="3"/><path class="world-door" d="M52 57h22v34H52z" fill="${colour}"/><path d="M34 51h12v15H34zm45 0h9v15h-9z" fill="#9fd8e8"/><circle cx="68" cy="75" r="2" fill="#fff"/>`;
+    else if(chapter===0)shape=`<path d="M45 98Q20 65 61 38L73 44Q51 69 84 98" fill="#e0bb78"/><path d="M13 62V34m92 35V32" stroke="#826044" stroke-width="7"/><path d="M0 38l13-29 17 29zm88-4L105 3l15 31" fill="${colour}"/><path d="M59 58V20m-19 0h40l12 10-12 10H40z" fill="#fff2c8" stroke="#826044" stroke-width="4"/>`;
+    else if(chapter===1)shape=`<path d="M0 82q15-15 30 0t30 0 30 0 30 0v18H0" fill="#64bbd2"/><path d="M8 77Q60 12 112 77" fill="none" stroke="${colour}" stroke-width="15"/><path d="M8 56Q60-5 112 56M8 56v22m24-43v22m28-31v21m28-12v22m24-1v22" fill="none" stroke="#836344" stroke-width="5"/>`;
+    else shape=`<path d="M16 94V16h17v12h17V16h20v12h17V16h17v78" fill="#b5a5bc" stroke="#625573" stroke-width="4"/><path class="world-door" d="M40 94V61a20 20 0 0 1 40 0v33" fill="${colour}" stroke="#625573" stroke-width="4"/><circle cx="70" cy="75" r="3" fill="#ffe17b"/>`;
+    return `<svg viewBox="0 0 120 100" aria-hidden="true">${shape}</svg>`;
   }
 
   function renderGame(){
@@ -1115,7 +1130,7 @@
     if(game.index===game.queue.length){
       const tail=`최고 콤보 ${game.bestStreak}연속 · 다시 도전 ${game.wrong}번.`;
       const summary=game.mode==='treasure'?`🪙 금화를 ${game.coins}개나 모았어요! ${tail}`
-        :game.mode==='delivery'?`⚡ 속달 배달 ${game.express} / ${game.queue.length}건! ${tail}`
+        :game.mode==='delivery'?`📦 정확 배달 ${game.express} / ${game.queue.length}건! ${tail}`
         :`🚂 기차 ${game.queue.length}대를 완성했어요! ${tail}`;
       return sessionHeading(titles[game.mode],'끝까지 해낸 너에게 탐험 도장을!')+result(game.mode==='treasure'?'보물상자를 찾았어요!':game.mode==='train'?'문장 기차가 모두 도착했어요!':'소포를 모두 배달했어요!',summary,'map','탐험 지도로',`<button data-action="start-game" data-value="${game.mode}">한 번 더 놀기 ↻</button>`);
     }
@@ -1124,24 +1139,24 @@
     let content='';
     if(game.mode==='train'){
       const tokens=w.example.trim().split(/\s+/);game.tokens=C.shuffle(tokens.map((text,id)=>({text,id})));game.selected=[];
-      content=`<div class="game-prompt"><p>이 뜻이 되도록 말을 연결해요.</p><h2 class="question">${esc(w.exampleKo)}</h2><button data-action="game-listen">${icon('sound')}문장 듣기</button></div><div id="train-track" class="train-track" aria-label="내가 만든 문장"><div class="engine-wrap">${trainEngineSvg(profileId)}</div><span class="train-empty-hint">여기에 기차를 연결해요</span></div><div id="train-bank" class="train-bank">${game.tokens.map((token,i)=>`<button class="train-token" data-action="train-token" data-value="${i}" lang="en-AU">${esc(token.text)}</button>`).join('')}</div><div class="train-actions"><button data-action="train-undo">한 칸 되돌리기</button><button class="primary" data-action="train-check">기차 출발!</button></div>`;
+      content=`<div class="game-prompt"><p>이 뜻이 되도록 말을 연결해요.</p><h2 class="question">${esc(w.exampleKo)}</h2><button data-action="game-listen">${icon('sound')}문장 듣기</button></div><div class="station-passengers">🚉 승객이 문장 기차를 기다려요 · ${game.index+1}번 역</div><div id="train-track" class="train-track" aria-label="내가 만든 문장"><div class="engine-wrap">${trainEngineSvg(profileId)}</div><span class="train-empty-hint">여기에 기차를 연결해요</span></div><div id="train-bank" class="train-bank">${game.tokens.map((token,i)=>`<button class="train-token" data-action="train-token" data-value="${i}" lang="en-AU">${esc(token.text)}</button>`).join('')}</div><div class="train-actions"><button data-action="train-undo">한 칸 되돌리기</button><button class="primary" data-action="train-check">기차 출발!</button></div>`;
     } else {
       game.choices=C.choices(w,data().words,game.mode==='delivery'?3:4);
-      const prompt=game.mode==='delivery'?`<p>소리를 듣고 우편함을 골라요. <b>다시 듣기 없이</b> 맞히면 ⚡속달 배달!</p><button class="primary" data-action="game-listen">${icon('sound')}다시 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p>`:`<p>이 뜻의 단어를 골라 길을 열어요. 연속으로 맞히면 금화가 쑥쑥!</p><h2 class="question">${esc(w.ko)}</h2>`;
-      const scene=game.mode==='treasure'
-        ? `<div class="treasure-river-track" aria-label="보물까지 ${6-game.index}걸음">
-            <div class="river-decor">
-              <span class="river-flower f1">🌸</span>
-              <span class="river-wave w1"></span>
-              <span class="river-wave w2"></span>
-              <span class="river-flower f2">🍀</span>
-            </div>
-            <div class="game-path">${Array.from({length:7},(_,i)=>`<span class="game-stop ${i<game.index?'arrived':''} ${i===game.index?'here':''} ${i===6?'chest-stop':''}">${i===6?`<div class="chest-anchor">${treasureChestSvg(game.index===6)}</div>`:i<game.index?'✓':i===game.index?`<div class="char-on-stop">${characterSvg(profileId,'standing')}<span class="jump-bubble">★ 정답!</span></div><span class="stone-num">${i+1}</span>`:`<span class="stone-num">${i+1}</span>`}</span>`).join('')}</div>
-          </div>`
-        : `<div class="delivery-route" aria-label="${game.index}개 배달 완료"><div class="delivery-road-line"></div><span class="delivery-cart" style="left:${game.index/6*82}%">${deliveryVanSvg(profileId)}</span><div class="flying-parcel" hidden>📦</div></div>`;
-      content=scene+`<div class="game-prompt">${prompt}</div><div class="${game.mode==='delivery'?'mailboxes':'choices'}">${game.choices.map((w,i)=>`<button data-action="game-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div>`;
+      const chapter=game.index%3;
+      const scenes=[['🌿','숲의 갈림길','표지판을 읽고 길을 골라요.','길이 열렸어요!'],['🌊','강 위의 다리','맞는 말이 적힌 다리를 건너요.','다리가 이어졌어요!'],['🏰','보물 성문','단서와 맞는 문을 열어요.','보물 문이 열렸어요!']];
+      const scene=scenes[chapter];
+      const pct=game.index/game.queue.length*100;
+      const treasure=game.mode==='treasure';
+      content=`<div class="adventure-board ${treasure?'landscape-'+chapter:'village'}">
+        <div class="adventure-caption"><strong>${treasure?scene[0]+' '+scene[1]:'📦 주문 배달 마을'}</strong><span>${game.index}곳 완료${game.reviewed.size?' · 기억 도전 포함':''}</span></div>
+        <div class="journey-meter"><span style="width:${pct}%"></span></div>
+        <div class="world-actor">${treasure?characterSvg(profileId,'standing'):deliveryVanSvg(profileId)}<span id="world-message">${treasure?'어느 길로 갈까?':'주문을 듣고 배달해요!'}</span></div>
+        <div class="game-prompt">${treasure?`<p>${scene[2]}</p><h2 class="question">${esc(w.ko)}</h2>`:`<button class="primary" data-action="game-listen">${icon('sound')}주문 다시 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p><p>몇 번이든 들어도 좋아요. 뜻이 맞는 집을 골라요.</p>`}</div>
+        <div class="world-destinations ${treasure?'trail-options':'mailboxes'}">${game.choices.map((choice,i)=>`<button class="destination" data-action="game-answer" data-value="${i}" ${treasure?'lang="en-AU"':''}><span class="destination-art" aria-hidden="true">${destinationArt(treasure,chapter,i)}</span><strong>${esc(treasure?choice.en:choice.ko)}</strong><span class="arrival-mark" aria-hidden="true">${treasure?'✨':'📦 ✓'}</span></button>`).join('')}</div>
+      </div>`;
+
     }
-    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><div id="game-hud" class="game-hud">${gameHud()}</div><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
+    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><div id="game-hud" class="game-hud">${gameHud()}</div><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden><span class="game-timer-progress" aria-hidden="true"></span><span id="game-next-label">다음 미션으로</span><span id="game-timer-wrap" class="quiz-timer-pill"><strong id="game-timer-num">2</strong>초 후 자동</span>${icon('arrow')}</button></div></div>`;
   }
   function renderRewards(){return `<div class="lead"><div><div class="eyebrow">MY LITTLE ADVENTURE</div><h1>내가 모은 탐험 배지</h1><p>네 가지 미션을 끝내면 하루의 탐험이 완성돼요.</p></div><div class="journey-count">★ <strong>${profile.stars}</strong>개</div></div><div class="badges">${regions.map((r,i)=>{const n=days.slice(i*10,i*10+10).filter(d=>C.isCleared(profile,d.day)).length;return `<article class="badge ${n===10?'unlocked':'locked'}"><div class="badge-symbol" aria-hidden="true">${n===10?'✦':'◇'}</div><h2>${r.name}</h2><p>${n} / 10일 완료</p><p>${n===10?'탐험 배지를 받았어요!':'열 번의 모험이 기다려요'}</p></article>`;}).join('')}</div><div class="learning-footer"><p class="note">미션당 별 1개, 하루 완주 보너스 별 3개.<br>Aiden과 Luca의 기록은 따로 저장돼요.</p><button class="primary" data-action="tab" data-value="map">탐험 이어 하기</button></div>`;}
   function render(){const restoreFocus=$('main').contains(document.activeElement);nav();updateHeader();$('main').innerHTML=({map:renderMap,cards:renderCards,comic:renderComic,quiz:renderQuiz,game:renderGame,rewards:renderRewards}[tab])();if(tab==='map')fitMap();if(restoreFocus)$('main').focus({preventScroll:true});}
@@ -1151,61 +1166,36 @@
     game.streak++;
     if(game.streak>game.bestStreak)game.bestStreak=game.streak;
     if(game.mode==='treasure')game.coins+=3+Math.max(0,game.streak-1)*2;
-    const express=game.mode==='delivery'&&game.helps===0;
+    const express=game.mode==='delivery'&&game.roundWrong===0;
     if(express)game.express++;
     if(game.index+1===game.queue.length) mark('game');
     if(game.mode==='train'){
       chime('train-whistle');
-      feedback('칙칙폭폭! 문장 기차 출발!');
+      feedback('칙칙폭폭! 승객을 태우고 다음 역으로 출발!');
+      speak(data().words[game.queue[game.index]].example);
+      document.querySelector('.station-passengers').textContent='🙋 탑승 완료! 🚉';
       burstConfetti(window.innerWidth*0.5, window.innerHeight*0.38, 45);
       $('train-track').classList.add('departing');
-    } else if(game.mode==='delivery'){
-      chime('delivery-horn');
-      feedback(express?'⚡ 속달 배달 성공! 한 번에 알아들었어요!':'빵빵! 소포를 우편함에 배달했어요!');
-      burstConfetti(window.innerWidth*0.5, window.innerHeight*0.4, 35);
-      document.querySelector('.delivery-cart').style.left=`${(game.index+1)/6*82}%`;
-      const btn=document.querySelector('.mailboxes button.correct');
-      if(btn) {
-        btn.classList.add('mailbox-delivered');
-        const parcel=document.querySelector('.flying-parcel');
-        if(parcel) {
-          parcel.hidden=false;
-          parcel.classList.add('parachuting');
-        }
-      }
-    } else if(game.mode==='treasure'){
-      chime('hop');
-      burstConfetti(window.innerWidth*0.5, window.innerHeight*0.32, 40);
-      feedback(game.index+1===6?'만세! 반짝이는 보물상자를 찾았어요!':'폴짝! 맞았어요! 다음 징검다리로 가요.');
-      const curChar = document.querySelector('.char-on-stop');
-      if(curChar) {
-        curChar.classList.add('char-celebrating');
-        const bubble = curChar.querySelector('.jump-bubble');
-        if(bubble) {
-          const praises = ['★ 딩동댕!', '★ 완벽해요!', '★ 슈퍼 점프!', '★ 대단해요!', '★ 멋져요!'];
-          bubble.textContent = praises[game.index % praises.length];
-          bubble.classList.add('pop');
-        }
-      }
-      const stops=document.querySelectorAll('.game-stop');
-      stops[game.index].classList.remove('here');
-      stops[game.index].classList.add('arrived');
-      if(stops[game.index+1]){
-        stops[game.index+1].classList.add('here');
-        stops[game.index+1].classList.add('stone-landing');
-      }
-      if(game.index+1===6){
-        // 마지막 징검다리를 건넜으니 보물상자를 실제로 활짝 열어 줘요
-        const anchor=document.querySelector('.chest-anchor');
-        if(anchor)anchor.innerHTML=treasureChestSvg(true);
-        chime('bonus-slam');
-        launchConfetti(true);
-      }
+    } else if(game.mode==='delivery'||game.mode==='treasure'){
+      const delivery=game.mode==='delivery';
+      chime(delivery?'delivery-horn':'hop');
+      const message=delivery?(express?'정확한 배달! 고마워요!':'다시 도전해서 배달 성공!'):['길이 열렸어요!','다리가 이어졌어요!','보물 문이 열렸어요!'][game.index%3];
+      feedback(message+' '+data().words[game.queue[game.index]].en+' · '+data().words[game.queue[game.index]].ko);
+      $('world-message').textContent=message;
+      const destination=document.querySelector('.destination.correct');
+      destination.classList.add('reached');
+      const board=document.querySelector('.adventure-board');
+      board.classList.add('resolved');
+      const actor=board.querySelector('.world-actor');
+      actor.style.setProperty('--travel',`${destination.offsetLeft+destination.offsetWidth/2-board.clientWidth/2}px`);
+      board.querySelector('.journey-meter span').style.width=`${(game.index+1)/game.queue.length*100}%`;
+      burstConfetti(window.innerWidth*.5,window.innerHeight*.55,35);
+      if(game.index+1===game.queue.length){chime('bonus-slam');launchConfetti(true);}
     } else {
       chime();
       feedback('맞았어요! 다음 목적지로 가요.');
     }
-    document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"]').forEach(b=>b.disabled=true);
+    document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"],[data-action="train-edit"]').forEach(b=>b.disabled=true);
     if(game.streak>=2){
       const streak=game.streak, label=comboLabel(streak), at=game.index;
       setTimeout(()=>chime('combo',streak-2),220);
@@ -1213,26 +1203,34 @@
       setTimeout(()=>{const el=$('feedback');if(el&&game?.answered&&game.index===at)el.textContent=`${el.textContent} ${label}`;},260);
     }
     refreshHud(game.streak>=2);
-    const fork=game.mode==='treasure'&&FORK_STEPS.includes(game.index);
-    if(fork){game.fork={a:5+Math.floor(Math.random()*10),b:5+Math.floor(Math.random()*10)};showFork();}
-    $('game-next').hidden=fork;
-    if(!fork){
-      $('game-next').focus({preventScroll:true});
-      scheduleAdvance(game.mode==='train'?2000:1500);
+    clearAutoAdvance();
+    const nextBtn=$('game-next');
+    const isAutoMode=game.mode==='train'||game.mode==='delivery';
+    const isFinal=game.index+1===game.queue.length;
+    const nextLabel=$('game-next-label');
+    const timerWrap=$('game-timer-wrap');
+    if(nextLabel)nextLabel.textContent=isFinal?'결과 보러 가기':'다음 미션으로';
+    if(isAutoMode){
+      if(timerWrap)timerWrap.hidden=false;
+      let secLeft=2;
+      const timerNum=$('game-timer-num');
+      if(timerNum)timerNum.textContent='2';
+      const prog=document.querySelector('.game-timer-progress');
+      if(prog){prog.style.animation='none';void prog.offsetWidth;prog.style.animation='gameTimerShrink 2s linear forwards';}
+      gameCountdownInterval=setInterval(()=>{secLeft--;const el=$('game-timer-num');if(el)el.textContent=String(Math.max(1,secLeft));if(secLeft<=0)clearInterval(gameCountdownInterval);},1000);
+      gameAutoTimer=setTimeout(()=>{clearInterval(gameCountdownInterval);if(tab==='game'&&game?.answered)advanceGame();},2000);
+    } else {
+      if(timerWrap)timerWrap.hidden=true;
     }
-  }
-  function showFork(){
-    const stage=document.querySelector('.game-stage');if(!stage)return;
-    const box=document.createElement('div');
-    box.className='fork-choice';
-    box.innerHTML=`<p>보물 갈림길! 상자 하나를 골라 봐요 🎁</p><div class="fork-row"><button data-action="fork" data-value="a">${treasureChestSvg(false)}</button><button data-action="fork" data-value="b">${treasureChestSvg(false)}</button></div>`;
-    stage.appendChild(box);
+    nextBtn.hidden=false;
+    nextBtn.focus({preventScroll:true});
   }
   function updateTrain(){
+    $('train-track').classList.remove('repairing');
     const chosen=game.selected.map(i=>game.tokens[i]);
     const engine=`<div class="engine-wrap">${trainEngineSvg(profileId)}</div>`;
     const wagons=chosen.length
-      ? chosen.map(t=>`<div class="train-wagon" lang="en-AU"><span class="wagon-coupler"></span><span class="wagon-box">${esc(t.text)}</span><div class="wagon-wheels"><span class="w-wheel"></span><span class="w-wheel"></span></div></div>`).join('')
+      ? chosen.map((t,i)=>`<button data-action="train-edit" data-value="${i}" class="train-wagon" lang="en-AU" aria-label="${esc(t.text)}부터 다시 연결"><span class="wagon-coupler"></span><span class="wagon-box">${esc(t.text)}</span><div class="wagon-wheels"><span class="w-wheel"></span><span class="w-wheel"></span></div></button>`).join('')
       : '<span class="train-empty-hint">여기에 기차를 연결해요</span>';
     $('train-track').innerHTML=engine+wagons;
     document.querySelectorAll('[data-action="train-token"]').forEach(b=>b.disabled=game.selected.includes(Number(b.dataset.value)));
@@ -1279,39 +1277,28 @@
     if(a==='quiz-next'&&quiz?.answered){advanceQuiz();return;}
     if(a==='start-game')return startGame(v);
     if(a==='game-menu'){clearAutoAdvance();cancelSpeech();game=null;render();return;}
-    if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];if(game.mode==='delivery'&&!game.answered)game.helps++;return speak(game.mode==='train'?w.example:w.en);}
+    if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];return speak(game.mode==='train'?w.example:w.en);}
     if(a==='game-meaning'&&game){if(!game.answered)game.helps++;$('meaning-hint').hidden=false;return;}
-    if(a==='fork'&&game?.fork){
-      const gain=game.fork[v]||0;game.coins+=gain;game.fork=null;
-      chime('coin');
-      button.innerHTML=treasureChestSvg(true);
-      button.classList.add('fork-open');
-      document.querySelectorAll('[data-action="fork"]').forEach(b=>b.disabled=true);
-      const rect=button.getBoundingClientRect();
-      burstConfetti(rect.left+rect.width/2,rect.top+rect.height/2,30,['#ffd700','#ffe082','#fff59d']);
-      const caption=document.querySelector('.fork-choice p');
-      if(caption)caption.textContent=`🪙 금화 ${gain}개를 찾았어요!`;
-      refreshHud();
-      setTimeout(()=>{document.querySelector('.fork-choice')?.remove();if(game?.answered)$('game-next').hidden=false;},1300);
-      scheduleAdvance(2200);
-      return;
-    }
     if(a==='game-answer'&&game&&!game.answered){const w=data().words[game.queue[game.index]];if(game.choices[n].en===w.en){button.classList.add('correct');gameSuccess();}else{button.classList.add('wrong');setTimeout(()=>button.classList.remove('wrong'),520);loseHeart(game.mode==='delivery'?'그 우편함이 아니에요. 소리를 한 번 더 듣고 골라 봐요!':'아직 그 단어는 아니에요. 한 번 더 도전!');}return;}
     if(a==='train-token'&&game?.mode==='train'&&!game.answered&&!game.selected.includes(n)){game.selected.push(n);chime('snap',game.selected.length-1);updateTrain();return;}
+    if(a==='train-edit'&&game?.mode==='train'&&!game.answered){game.selected=game.selected.slice(0,n);updateTrain();return;}
     if(a==='train-undo'&&game?.mode==='train'&&!game.answered){game.selected.pop();chime('ding');updateTrain();return;}
     if(a==='train-check'&&game?.mode==='train'&&!game.answered){
       const sentence=game.selected.map(i=>game.tokens[i].text).join(' '),target=data().words[game.queue[game.index]].example.trim().replace(/\s+/g,' ');
       if(sentence===target)gameSuccess();
       else{
-        loseHeart('덜컹! 마지막 칸이 떨어졌어요. 문장을 듣고 다시 연결해 봐요.');
-        const wagons=document.querySelectorAll('.train-wagon'),last=wagons[wagons.length-1];
-        game.selected.pop();
-        if(last){last.classList.add('wagon-drop');setTimeout(()=>{if(game?.mode==='train'&&!game.answered)updateTrain();},380);}
-        else updateTrain();
+        const expected=target.split(' ');
+        let matched=0;
+        while(matched<game.selected.length&&game.tokens[game.selected[matched]].text===expected[matched])matched++;
+        loseHeart(`${matched+1}번째 칸을 다시 연결해 볼까요? 맞춘 앞부분은 그대로예요.`);
+        game.selected=game.selected.slice(0,matched);
+        updateTrain();
+        $('train-track').classList.add('repairing');
+
       }
       return;
     }
-    if(a==='game-next'&&game?.answered){advanceGame();return;}
+    if(a==='game-next'&&game?.answered){clearAutoAdvance();advanceGame();return;}
   });
   $('ko-speech').addEventListener('change',e=>{koreanSpeech=e.target.checked;});
   $('speech-rate').addEventListener('change',e=>{rate=Number(e.target.value);});

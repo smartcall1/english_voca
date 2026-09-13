@@ -77,20 +77,16 @@
   };
 
   // Day 1 완료(별 7개) 복원 및 초기 시딩 (사용자가 설정에서 초기화하기 전까지 영구 보존)
-  const restoreFlag = read('english_island_v2_day1_restored_v1');
+  const restoreFlag = read('english_island_v2_day1_force_restore_v2');
   if (!restoreFlag) {
-    if (profiles.aiden.stars === 0 && Object.keys(profiles.aiden.days).length === 0) {
-      profiles.aiden = DAY1_CLEARED_PROFILE();
-      write('english_island_v2_aiden', JSON.stringify(profiles.aiden));
-      idbPut('english_island_v2_aiden', JSON.stringify(profiles.aiden));
-    }
-    if (profiles.luca.stars === 0 && Object.keys(profiles.luca.days).length === 0) {
-      profiles.luca = DAY1_CLEARED_PROFILE();
-      write('english_island_v2_luca', JSON.stringify(profiles.luca));
-      idbPut('english_island_v2_luca', JSON.stringify(profiles.luca));
-    }
-    write('english_island_v2_day1_restored_v1', 'true');
-    idbPut('english_island_v2_day1_restored_v1', 'true');
+    profiles.aiden = DAY1_CLEARED_PROFILE();
+    profiles.luca = DAY1_CLEARED_PROFILE();
+    write('english_island_v2_aiden', JSON.stringify(profiles.aiden));
+    idbPut('english_island_v2_aiden', JSON.stringify(profiles.aiden));
+    write('english_island_v2_luca', JSON.stringify(profiles.luca));
+    idbPut('english_island_v2_luca', JSON.stringify(profiles.luca));
+    write('english_island_v2_day1_force_restore_v2', 'true');
+    idbPut('english_island_v2_day1_force_restore_v2', 'true');
   }
 
   let profile = profiles[profileId], day = profile.currentDay, region = Math.floor((day - 1) / 10), tab = 'map';

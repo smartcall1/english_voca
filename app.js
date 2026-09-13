@@ -90,7 +90,7 @@
   }
 
   let profile = profiles[profileId], day = profile.currentDay, region = Math.floor((day - 1) / 10), tab = 'map';
-  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, audioContext;
+  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, quizAutoTimer, audioContext;
   let koreanSpeech = true, rate = .9;
   let pendingReset = null;
   function dismissReset() {
@@ -243,7 +243,7 @@
     if (fxParticles.length > 0) fxAnimationId = requestAnimationFrame(fxLoop);
     else { fxAnimationId = null; fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); }
   }
-  function chime(type = 'default'){
+  function chime(type = 'default', level = 0){
     try{
       const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
       audioContext ||= new AC();
@@ -314,12 +314,42 @@
           o.start(now); o.stop(now + 0.3);
         });
       } else if (type === 'snap') {
+        // 기차 칸을 연결할수록 반음씩 올라가는 '도-레-미' 연결음
+        const top = 880 * Math.pow(2, Math.min(level, 8) * 2 / 12);
         const o = audioContext.createOscillator(), g = audioContext.createGain();
-        o.type = 'triangle'; o.frequency.setValueAtTime(880, now);
-        o.frequency.exponentialRampToValueAtTime(220, now + 0.08);
+        o.type = 'triangle'; o.frequency.setValueAtTime(top, now);
+        o.frequency.exponentialRampToValueAtTime(top / 4, now + 0.08);
         g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
         o.connect(g); g.connect(audioContext.destination);
         o.start(now); o.stop(now + 0.1);
+      } else if (type === 'combo') {
+        // 콤보가 쌓일수록 통째로 올라가는 상승 아르페지오
+        const shift = Math.pow(2, Math.min(level, 8) / 12);
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+          const o = audioContext.createOscillator(), g = audioContext.createGain(), start = now + idx * 0.055;
+          o.type = 'triangle'; o.frequency.setValueAtTime(f * shift, start);
+          g.gain.setValueAtTime(0.038, start);
+          g.gain.exponentialRampToValueAtTime(0.0001, start + 0.26);
+          o.connect(g); g.connect(audioContext.destination);
+          o.start(start); o.stop(start + 0.28);
+        });
+      } else if (type === 'coin') {
+        [987.77, 1318.51].forEach((f, idx) => {
+          const o = audioContext.createOscillator(), g = audioContext.createGain(), start = now + idx * 0.05;
+          o.type = 'square'; o.frequency.setValueAtTime(f, start);
+          g.gain.setValueAtTime(0.022, start);
+          g.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+          o.connect(g); g.connect(audioContext.destination);
+          o.start(start); o.stop(start + 0.16);
+        });
+      } else if (type === 'oops') {
+        // 혼내는 소리가 아니라 '다시 해 보자'는 부드러운 하강음
+        const o = audioContext.createOscillator(), g = audioContext.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(392, now);
+        o.frequency.exponentialRampToValueAtTime(294, now + 0.22);
+        g.gain.setValueAtTime(0.035, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+        o.connect(g); g.connect(audioContext.destination);
+        o.start(now); o.stop(now + 0.26);
       } else {
         [523.25, 659.25, 783.99].forEach((f, idx) => {
           const o = audioContext.createOscillator(), g = audioContext.createGain(), start = now + idx * 0.09;
@@ -435,9 +465,16 @@
       toast(bonus ? `Day ${day} 탐험 완료! 보너스 별 3개도 받았어요.` : '미션 완료! 별 하나를 받았어요.');
     }
   }
-  function resetActivity(){cancelSpeech();cardIndex=0;exampleRevealed=new Set();comicRead=new Set();comicCut=0;quiz=null;game=null;}
-  function setDay(value,next='cards') {if(!Number.isInteger(value)||value<1||value>50)return;clearCelebration();resetActivity();day=value;region=Math.floor((day-1)/10);save();navigate(next);}
-  function navigate(value){if(!['map','cards','comic','quiz','game','rewards'].includes(value))return;cancelSpeech();clearCelebration();if(value!==tab||value==='game'){game=null;quiz=null;}tab=value;render();window.scrollTo({top:0,behavior:'instant'});$('main').focus({preventScroll:true});}
+  function advanceQuiz() {
+    clearTimeout(quizAutoTimer);
+    if (!quiz || !quiz.answered) return;
+    quiz.index++;
+    if (quiz.index === 12) mark('quiz');
+    render();
+  }
+  function resetActivity(){clearTimeout(quizAutoTimer);cancelSpeech();cardIndex=0;exampleRevealed=new Set();comicRead=new Set();comicCut=0;quiz=null;game=null;}
+  function setDay(value,next='cards') {if(!Number.isInteger(value)||value<1||value>50)return;clearTimeout(quizAutoTimer);clearCelebration();resetActivity();day=value;region=Math.floor((day-1)/10);save();navigate(next);}
+  function navigate(value){if(!['map','cards','comic','quiz','game','rewards'].includes(value))return;clearTimeout(quizAutoTimer);cancelSpeech();clearCelebration();if(value!==tab||value==='game'){game=null;quiz=null;}tab=value;render();window.scrollTo({top:0,behavior:'instant'});$('main').focus({preventScroll:true});}
   function nav(){const items=[['map','탐험 지도'],['cards','단어 카드'],['comic','이야기 만화'],['quiz','단어 퀴즈'],['game','놀이 마당']];$('nav').innerHTML=items.map(([id,label])=>`<button data-action="tab" data-value="${id}" ${tab===id?'aria-current="page"':''}>${icon(id)}${label}</button>`).join('');}
   function stepStrip(){return `<div class="step-strip" aria-label="오늘의 네 가지 미션">${[['cards','단어'],['comic','만화'],['quiz','퀴즈'],['game','게임']].map(([id,label],i)=>`<button class="${tab===id?'active':''} ${record()[id]?'complete':''}" data-action="tab" data-value="${id}" ${tab===id?'aria-current="step"':''}>${i+1}. ${label}</button>`).join('')}</div>`;}
   function sessionHeading(title,description){return `<div class="session-heading"><div><div class="eyebrow">DAY ${day} · ${esc(data().title)}</div><h1>${title}</h1><p>${description}</p></div><button data-action="tab" data-value="map">${icon('map')}지도 보기</button></div>${stepStrip()}`;}
@@ -1017,13 +1054,72 @@
       <div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 섬 끝의 보물상자를 찾아요.','6개의 징검다리'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개'],['delivery','van','듣고 배달하기','영어 소리를 듣고, 맞는 우편함에 소포를 배달해요.','6번의 배달']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n} · 시간제한 없이</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">어떤 놀이든 여러 번 할 수 있어요. 별은 미션마다 한 번만 받아요.</p>`;
   }
 
-  function startGame(mode){if(!['treasure','train','delivery'].includes(mode))return;game={mode,queue:C.shuffle(data().words.map((_,i)=>i)).slice(0,mode==='train'?3:6),index:0,answered:false,choices:[],tokens:[],selected:[],wrong:0};render();if(mode==='delivery')speak(data().words[game.queue[0]].en);}
+  const HEART_MAX = 3, FORK_STEPS = [1, 3];
+  function comboLabel(streak){
+    const words = {2:'🔥 2콤보!', 3:'🔥 3콤보! 불붙었어요', 4:'⚡ 4콤보! 굉장해요', 5:'🌈 5콤보! 최고예요'};
+    return streak >= 6 ? `🌟 ${streak}콤보! 전설이에요` : (words[streak] || '');
+  }
+  function gameHud(){
+    if(!game)return '';
+    const hearts=Array.from({length:HEART_MAX},(_,i)=>`<span class="heart ${i<game.hearts?'':'lost'}">${i<game.hearts?'❤️':'🤍'}</span>`).join('');
+    const extra=game.mode==='treasure'?`<span class="coin-pill">🪙 <b>${game.coins}</b></span>`
+      :game.mode==='delivery'?`<span class="coin-pill express">⚡ 속달 <b>${game.express}</b></span>`
+      :`<span class="coin-pill train">🚃 <b>${game.index}</b>대 완성</span>`;
+    return `<span class="heart-row" aria-label="남은 하트 ${game.hearts}개">${hearts}</span>${extra}<span class="combo-pill ${game.streak>=2?'on':''}">${game.streak>=2?comboLabel(game.streak):'콤보를 쌓아 봐요'}</span>`;
+  }
+  function refreshHud(pop=false){
+    const el=$('game-hud');if(!el)return;
+    el.innerHTML=gameHud();
+    if(pop)el.querySelector('.combo-pill')?.classList.add('pop');
+  }
+  function loseHeart(message){
+    if(!game)return;
+    game.wrong++;game.streak=0;game.hearts--;
+    chime('oops');
+    if(game.hearts<=0){
+      game.hearts=HEART_MAX;game.helps++;
+      feedback('괜찮아요! 하트를 다시 채웠어요. 소리를 듣고 한 번 더 해 봐요.',true);
+      const w=data().words[game.queue[game.index]];
+      speak(game.mode==='train'?w.example:w.en);
+    } else feedback(message,true);
+    refreshHud();
+  }
+  function clearAutoAdvance(){if(game?.autoTimer){clearTimeout(game.autoTimer);game.autoTimer=null;}}
+  function scheduleAdvance(delay){
+    clearAutoAdvance();
+    // 마지막 미션은 별 축하 연출을 끝까지 보여 주고, 아이가 직접 넘어가게 둬요
+    if(!game||game.index+1>=game.queue.length)return;
+    game.autoTimer=setTimeout(()=>{if(game)game.autoTimer=null;advanceGame();},delay);
+  }
+  function advanceGame(){
+    if(!game||!game.answered||game.fork)return;
+    clearAutoAdvance();
+    game.index++;
+    if(game.index===game.queue.length)mark('game');
+    render();
+    if(game.mode==='delivery'&&game.index<game.queue.length)speak(data().words[game.queue[game.index]].en);
+  }
+  function startGame(mode){
+    if(!['treasure','train','delivery'].includes(mode))return;
+    clearAutoAdvance();
+    game={mode,queue:C.shuffle(data().words.map((_,i)=>i)).slice(0,mode==='train'?3:6),index:0,answered:false,choices:[],tokens:[],selected:[],wrong:0,
+      streak:0,bestStreak:0,hearts:HEART_MAX,coins:0,express:0,helps:0,fork:null,autoTimer:null};
+    render();
+    if(mode==='delivery')speak(data().words[game.queue[0]].en);
+  }
 
   function renderGame(){
     if(!game)return renderGameMenu();
     const titles={treasure:'보물길 탐험',train:'문장 기차',delivery:'듣고 배달하기'};
-    if(game.index===game.queue.length)return sessionHeading(titles[game.mode],'끝까지 해낸 너에게 탐험 도장을!')+result(game.mode==='treasure'?'보물상자를 찾았어요!':game.mode==='train'?'문장 기차가 모두 도착했어요!':'소포를 모두 배달했어요!',`${game.queue.length}번의 미션 성공! 다시 도전한 횟수 ${game.wrong}번.`,'map','탐험 지도로');
-    const w=data().words[game.queue[game.index]];game.answered=false;
+    if(game.index===game.queue.length){
+      const tail=`최고 콤보 ${game.bestStreak}연속 · 다시 도전 ${game.wrong}번.`;
+      const summary=game.mode==='treasure'?`🪙 금화를 ${game.coins}개나 모았어요! ${tail}`
+        :game.mode==='delivery'?`⚡ 속달 배달 ${game.express} / ${game.queue.length}건! ${tail}`
+        :`🚂 기차 ${game.queue.length}대를 완성했어요! ${tail}`;
+      return sessionHeading(titles[game.mode],'끝까지 해낸 너에게 탐험 도장을!')+result(game.mode==='treasure'?'보물상자를 찾았어요!':game.mode==='train'?'문장 기차가 모두 도착했어요!':'소포를 모두 배달했어요!',summary,'map','탐험 지도로',`<button data-action="start-game" data-value="${game.mode}">한 번 더 놀기 ↻</button>`);
+    }
+    const w=data().words[game.queue[game.index]];game.answered=false;game.fork=null;
+    if(game.mode==='delivery')game.helps=0;
     let content='';
     if(game.mode==='train'){
       const tokens=w.example.trim().split(/\s+/);game.tokens=C.shuffle(tokens.map((text,id)=>({text,id})));game.selected=[];
@@ -1151,8 +1247,8 @@
     if(a==='comic-read'){comicRead.add(n);chime('ding');if(comicCut<3)comicCut=n+1;render();return;}
     if(a==='finish-comic'&&comicRead.size===4){mark('comic');return navigate('quiz');}
     if(a==='quiz-hint'&&quiz)return speak(data().words[quiz.queue[quiz.index]].en);
-    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);if(quiz.index+1===12)mark('quiz');$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
-    if(a==='quiz-next'&&quiz?.answered){quiz.index++;if(quiz.index===12)mark('quiz');render();return;}
+    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);if(quiz.index+1===12)mark('quiz');$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});clearTimeout(quizAutoTimer);quizAutoTimer=setTimeout(()=>{if(tab==='quiz'&&quiz?.answered)advanceQuiz();},1800);}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
+    if(a==='quiz-next'&&quiz?.answered){advanceQuiz();return;}
     if(a==='start-game')return startGame(v);
     if(a==='game-menu'){cancelSpeech();game=null;render();return;}
     if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];return speak(game.mode==='train'?w.example:w.en);}

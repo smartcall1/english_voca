@@ -386,6 +386,78 @@
   function sessionHeading(title,description){return `<div class="session-heading"><div><div class="eyebrow">DAY ${day} · ${esc(data().title)}</div><h1>${title}</h1><p>${description}</p></div><button data-action="tab" data-value="map">${icon('map')}지도 보기</button></div>${stepStrip()}`;}
   function tree(x,y,size=1){return `<g transform="translate(${x} ${y}) scale(${size})"><path d="M0 15v37" stroke="#916f45" stroke-width="10"/><ellipse cy="0" rx="27" ry="31" fill="#78a97c"/><ellipse cx="-15" cy="8" rx="22" ry="23" fill="#8bbb83"/><ellipse cx="16" cy="10" rx="21" ry="23" fill="#5e9e72"/></g>`;}
 
+
+  // Day 노드가 놓이는 좌표(900 x 480 기준). 지도와 랜드마크가 같은 좌표계를 쓴다.
+  const NODE_POINTS=[[120,375],[230,295],[170,160],[340,95],[520,105],[730,145],[640,250],[460,290],[590,375],[750,350]];
+  // 각 노드 옆 빈자리. 노드 아래 라벨과 기존 장식물을 피해 잡은 오프셋.
+  const LANDMARK_SLOTS=[[56,10],[58,8],[-58,4],[-60,8],[58,4],[56,6],[58,4],[-58,12],[-58,4],[0,-56]];
+  // Day마다 그날의 주제를 상징하는 작은 표식. 발밑이 (0,16), 높이는 36 안팎으로 통일한다.
+  const LANDMARK_ART=[
+    // 1-10 친구의 숲
+    `<path d="M0 16V-2" stroke="#8a6a45" stroke-width="5"/><rect x="-17" y="-19" width="34" height="17" rx="4" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><text y="-6" font-size="11" font-weight="800" fill="#d1743f" text-anchor="middle">Hi</text>`,
+    `<circle cx="9" cy="-5" r="6.5" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M1 16V8a8 8 0 0 1 16 0v8Z" fill="#7fb3d5" stroke="#8a6a45" stroke-width="2"/><circle cx="-8" cy="-8" r="7" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M-17 16V6a9 9 0 0 1 18 0v10Z" fill="#ef9a8a" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M11-20 17-14 3-1-4 1-2-6Z" fill="#ffd166" stroke="#8a6a45" stroke-width="2"/><path d="M-16-4h32v20h-32Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M-16-4q8-6 16 0 8-6 16 0" fill="#ef9a8a" stroke="#8a6a45" stroke-width="2"/><path d="M0-2v18" stroke="#c9a978" stroke-width="2"/>`,
+    `<path d="M-11 4-15 16m26-12 4 12" stroke="#8a6a45" stroke-width="3" stroke-linecap="round"/><rect x="-17" y="-18" width="34" height="24" rx="3" fill="#3f6b53" stroke="#8a6a45" stroke-width="2"/><text y="-1" font-size="11" font-weight="800" fill="#fff6de" text-anchor="middle">ABC</text>`,
+    `<path d="M8 2 16-12" stroke="#ffd9b0" stroke-width="5" stroke-linecap="round"/><circle cy="-9" r="7" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M-11 16V4a11 10 0 0 1 22 0v12Z" fill="#8ac6a0" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M-1-16c11 0 17 7 17 14 0 6-6 5-9 8-2 2-1 6-4 8-9 4-21-5-21-15 0-9 6-15 17-15Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><circle cx="-8" cy="-6" r="3" fill="#e05a4f"/><circle cx="1" cy="-10" r="3" fill="#ffc94d"/><circle cx="8" cy="-1" r="3" fill="#4f9ad6"/><circle cx="-4" cy="4" r="3" fill="#6cbf72"/>`,
+    `<rect x="-18" y="0" width="15" height="16" rx="3" fill="#f2a35e" stroke="#8a6a45" stroke-width="2"/><rect x="-1" y="0" width="15" height="16" rx="3" fill="#6cbf72" stroke="#8a6a45" stroke-width="2"/><rect x="-10" y="-17" width="15" height="16" rx="3" fill="#7fb3d5" stroke="#8a6a45" stroke-width="2"/><text x="-2" y="-5" font-size="11" font-weight="800" fill="#fff6de" text-anchor="middle">1</text>`,
+    `<circle cx="-10" cy="8" r="8" fill="#7fb3d5" stroke="#8a6a45" stroke-width="2"/><rect x="1" y="0" width="16" height="16" rx="2" fill="#f2a35e" stroke="#8a6a45" stroke-width="2"/><path d="M-2-19 8-2H-12Z" fill="#e8c95c" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M13-19a4 4 0 0 1 6 4l-6 6-6-6a4 4 0 0 1 6-4Z" fill="#ef7d8e" stroke="#8a6a45" stroke-width="1.5"/><circle cy="0" r="15" fill="#ffe08a" stroke="#8a6a45" stroke-width="2"/><circle cx="-5" cy="-4" r="2" fill="#5a4632"/><circle cx="5" cy="-4" r="2" fill="#5a4632"/><path d="M-6 4q6 6 12 0" fill="none" stroke="#5a4632" stroke-width="2" stroke-linecap="round"/>`,
+    `<path d="M-13 16V-7h11" fill="none" stroke="#c96f3f" stroke-width="3.5" stroke-linecap="round"/><path d="M-13 1h11m-11 8h11" stroke="#c96f3f" stroke-width="3"/><path d="M-2-7q19 9 19 23" fill="none" stroke="#e8913a" stroke-width="8" stroke-linecap="round"/><path d="M-2-7q19 9 19 23" fill="none" stroke="#ffd48c" stroke-width="3.5" stroke-linecap="round"/>`,
+    // 11-20 포근한 마을
+    `<circle cx="-11" cy="-4" r="6" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M-19 16V6a8 8 0 0 1 16 0v10Z" fill="#ef9a8a" stroke="#8a6a45" stroke-width="2"/><circle cx="3" cy="-9" r="7" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M-5 16V4a8 8 0 0 1 16 0v12Z" fill="#7fb3d5" stroke="#8a6a45" stroke-width="2"/><circle cx="15" cy="2" r="5" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/><path d="M9 16v-5a6 6 0 0 1 12 0v5Z" fill="#ffd166" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M-14 16V-2h28v18Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M-18-2 0-18l18 16Z" fill="#e8735f" stroke="#8a6a45" stroke-width="2"/><rect x="-4" y="4" width="9" height="12" rx="2" fill="#c9945c" stroke="#8a6a45" stroke-width="1.5"/><rect x="-12" y="2" width="6" height="6" fill="#cfeaf7" stroke="#8a6a45" stroke-width="1.2"/>`,
+    `<path d="M-17 16V2h26a5 5 0 0 1 5 5v9" fill="#cfeaf7" stroke="#8a6a45" stroke-width="2"/><path d="M-17 6h10v-6h-10Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M9 2V-14" stroke="#8a6a45" stroke-width="2.5"/><path d="M2-14h14l-3 7H5Z" fill="#ffd166" stroke="#8a6a45" stroke-width="1.8"/>`,
+    `<path d="M-12 6V-6a3 3 0 0 1 6 0v-8a3 3 0 0 1 6 0v-3a3 3 0 0 1 6 0v11a11 11 0 0 1-11 12 7 7 0 0 1-7-6Z" fill="#ffd9b0" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M-19-12q19 7 38 0" fill="none" stroke="#8a6a45" stroke-width="2"/><path d="M-16-8-9-11l3 2 3-2 7 3-3 5-3-1v10h-9V-4l-3 1Z" fill="#7fb3d5" stroke="#8a6a45" stroke-width="1.8"/><path d="M5-7h13v16H5Z" fill="#ef9a8a" stroke="#8a6a45" stroke-width="1.8"/>`,
+    `<ellipse cx="-6" cy="7" rx="13" ry="9" fill="#fdfdf7" stroke="#8a6a45" stroke-width="2"/><circle cx="-6" cy="6" r="5" fill="#ffc94d" stroke="#e0a63f" stroke-width="1.5"/><path d="M6-9h14l-2 25H8Z" fill="#e7f1fb" stroke="#8a6a45" stroke-width="2"/><path d="M6-9h14l-1 6H7Z" fill="#fdfdf7" stroke="#8a6a45" stroke-width="1.2"/>`,
+    `<rect x="-16" y="-4" width="32" height="20" rx="4" fill="#e8735f" stroke="#8a6a45" stroke-width="2"/><path d="M-7-4v-4a7 7 0 0 1 14 0v4" fill="none" stroke="#8a6a45" stroke-width="2.5"/><path d="M-16 4h32" stroke="#fff3d6" stroke-width="2.5"/>`,
+    `<path d="M-17 2h34l-4 14h-26Z" fill="#d9a45e" stroke="#8a6a45" stroke-width="2"/><circle cx="-6" cy="-5" r="7" fill="#e05a4f" stroke="#8a6a45" stroke-width="1.8"/><path d="M-6-12v-5" stroke="#6b8f3f" stroke-width="2"/><path d="M9-14 15 2H3Z" fill="#f0913f" stroke="#8a6a45" stroke-width="1.8"/>`,
+    `<path d="M-11 0h22l-3 16h-16Z" fill="#7fb3d5" stroke="#8a6a45" stroke-width="2"/><path d="M-3-18h7v12h-7Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="1.8"/><path d="M-3-8h7v8h-7Z" fill="#ef9a8a" stroke="#8a6a45" stroke-width="1.8"/>`,
+    `<path d="M-7-8-9-18l7 5h5l7-5-2 10" fill="#a99483" stroke="#8a6a45" stroke-width="1.8"/><path d="M-16 0h32v16h-32Z" fill="#d9a45e" stroke="#8a6a45" stroke-width="2"/><path d="M-16 0-12-9h24l4 9Z" fill="#e8c08a" stroke="#8a6a45" stroke-width="2"/>`,
+    // 21-30 무지개 항구
+    `<rect x="-15" y="-2" width="30" height="18" rx="2" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M-19-2-14-15h28l5 13Z" fill="#e8735f" stroke="#8a6a45" stroke-width="2"/><path d="M-8-2 -6-15m8 13 1-13m7 13 2-13" stroke="#fff3d6" stroke-width="2"/><rect x="-6" y="4" width="12" height="12" fill="#7fb3d5" stroke="#8a6a45" stroke-width="1.5"/>`,
+    `<rect x="-17" y="-11" width="34" height="21" rx="5" fill="#f2a35e" stroke="#8a6a45" stroke-width="2"/><rect x="-12" y="-7" width="10" height="9" rx="1.5" fill="#cfeaf7"/><rect x="1" y="-7" width="10" height="9" rx="1.5" fill="#cfeaf7"/><circle cx="-9" cy="12" r="4" fill="#5a4632"/><circle cx="9" cy="12" r="4" fill="#5a4632"/>`,
+    `<path d="M-16 8q0-19 16-19t16 19Z" fill="#e05a4f" stroke="#8a6a45" stroke-width="2"/><circle cy="-3" r="4" fill="#ffd166"/><path d="M-19 8h38v7h-38Z" fill="#c94b42" stroke="#8a6a45" stroke-width="2"/>`,
+    `<circle cx="13" cy="-11" r="6" fill="#ffd166" stroke="#8a6a45" stroke-width="1.8"/><path d="M-16-2h30l-3 18h-24Z" fill="#8ac6a0" stroke="#8a6a45" stroke-width="2"/><path d="M-9-2v-5a8 8 0 0 1 16 0v5" fill="none" stroke="#8a6a45" stroke-width="2.5"/>`,
+    `<path d="M-4-17h8v11h-8Z" fill="#c9a978" stroke="#8a6a45" stroke-width="1.5"/><rect x="-16" y="-6" width="32" height="22" rx="4" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M-3 0h6v4h4v6h-4v4h-6v-4h-4V4h4Z" fill="#e05a4f"/>`,
+    `<rect x="-9" y="-19" width="18" height="28" rx="5" fill="#4a6b55" stroke="#8a6a45" stroke-width="2"/><circle cy="-13" r="3.4" fill="#e05a4f"/><circle cy="-5" r="3.4" fill="#ffd166"/><circle cy="3" r="3.4" fill="#6cbf72"/><path d="M-14 13v5m7-5v5m7-5v5m7-5v5" stroke="#fdf6e6" stroke-width="3"/>`,
+    `<path d="M-17-9h34v18h-34Z" fill="none" stroke="#eaf2f4" stroke-width="2.5"/><path d="M-17-9v18m8-18v18m9-18v18m8-18v18m-25-9h34" stroke="#eaf2f4" stroke-width="1"/><circle cx="7" cy="9" r="7" fill="#fdfdf7" stroke="#5a4632" stroke-width="1.8"/><path d="M7 4 11 7l-1.5 5h-5L3 7Z" fill="#5a4632"/>`,
+    `<path d="M7-21v13" stroke="#5a4632" stroke-width="2.5"/><circle cx="3" cy="-8" r="4" fill="#5a4632"/><rect x="-15" y="0" width="28" height="16" rx="3" fill="#e05a4f" stroke="#8a6a45" stroke-width="2"/><ellipse cx="-1" cy="0" rx="14" ry="5" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/>`,
+    `<circle cy="0" r="16" fill="#fff3d6" stroke="#8a6a45" stroke-width="2.5"/><circle cy="0" r="11" fill="none" stroke="#e0d2ae" stroke-width="1.5"/><path d="M0 0v-9m0 9 7 5" stroke="#5a4632" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<rect x="-16" y="-10" width="32" height="26" rx="3" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><path d="M-16-2h32" stroke="#8a6a45" stroke-width="2"/><path d="M-9-15v7m18-7v7" stroke="#8a6a45" stroke-width="3" stroke-linecap="round"/><circle cx="-7" cy="7" r="4" fill="#ffd166"/><path d="M2 4h11m-11 7h8" stroke="#b7c6bb" stroke-width="2.5" stroke-linecap="round"/>`,
+    // 31-40 초록 탐험섬
+    `<path d="M0 16V2" stroke="#8a6a45" stroke-width="5"/><circle cy="-6" r="14" fill="#6cbf72"/><path d="M0-20a14 14 0 0 1 0 28Z" fill="#e8944f"/><circle cy="-6" r="14" fill="none" stroke="#4e7f4c" stroke-width="2"/>`,
+    `<path d="M0 2v-9" stroke="#5c8c46" stroke-width="2.5"/><path d="M0-5q-13-2-11-11 9-2 11 9Z" fill="#6cbf72" stroke="#4e7f4c" stroke-width="1.5"/><path d="M0-7q13-4 11-13-10 0-11 11Z" fill="#8ed48a" stroke="#4e7f4c" stroke-width="1.5"/><path d="M-11 2h22l-3 14h-16Z" fill="#d97b56" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M0 16V-1" stroke="#8a6a45" stroke-width="4"/><path d="M0-27 17-10 0 7-17-10Z" fill="#ffd44d" stroke="#6b5636" stroke-width="2.5"/><path d="M-6-1q-1-7 3-9 0-5 4-5 3 0 3 3l4 2-4 2q1 4-2 6l4 4h-5l-2-3-4 3Z" fill="#4a3b2a"/>`,
+    `<path d="M-13-9q-6-9-1-13 6 1 8 7Zm26 0q6-9 1-13-6 1-8 7Z" fill="#c9945c" stroke="#8a6a45" stroke-width="2"/><circle cy="0" r="13" fill="#e8c08a" stroke="#8a6a45" stroke-width="2"/><circle cx="-5" cy="-2" r="2" fill="#5a4632"/><circle cx="5" cy="-2" r="2" fill="#5a4632"/><ellipse cy="5" rx="3.5" ry="2.5" fill="#5a4632"/>`,
+    `<path d="M-17 4q4-13 16-13t14 11l5-7 2 14-7-2q-8 6-18 4T-17 4Z" fill="#5fa8d3" stroke="#38607d" stroke-width="2"/><circle cx="-7" cy="-2" r="2" fill="#1f3b4d"/><path d="M-5-13q2-6 7-7" fill="none" stroke="#cfeaf7" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<path d="M-18 8-6-13 2-1l6-9 11 18Z" fill="#7d9e6e" stroke="#41684f" stroke-width="2"/><path d="M-6-13-11-5h10Z" fill="#fdfdf7"/><path d="M-19 9q10 7 19 0t19 2v5h-38Z" fill="#5fa8d3" stroke="#38607d" stroke-width="1.5"/>`,
+    `<circle cx="-3" cy="-5" r="11" fill="#cfeaf7" opacity=".9" stroke="#8a6a45" stroke-width="2.5"/><path d="M-7-9q3-4 8-3" fill="none" stroke="#fdfdf7" stroke-width="2.5" stroke-linecap="round"/><path d="M5 4 15 15" stroke="#8a6a45" stroke-width="5" stroke-linecap="round"/>`,
+    `<rect x="-18" y="0" width="14" height="16" rx="2" fill="#c9945c" stroke="#8a6a45" stroke-width="2"/><rect x="-2" y="-5" width="14" height="21" rx="2" fill="#a8bcc4" stroke="#8a6a45" stroke-width="2"/><circle cx="10" cy="9" r="7" fill="#cfeaf7" opacity=".9" stroke="#8a6a45" stroke-width="2"/>`,
+    `<path d="M0-21q9 8 9 19l-4 7h-10l-4-7q0-11 9-19Z" fill="#fff3d6" stroke="#8a6a45" stroke-width="2"/><circle cy="-7" r="3.6" fill="#5fa8d3" stroke="#8a6a45" stroke-width="1.5"/><path d="M-9-1-15 8h6Zm18 0 6 9h-6Z" fill="#e05a4f" stroke="#8a6a45" stroke-width="1.5"/><path d="M-4 6q4 10 8 0Z" fill="#ffd166"/>`,
+    `<path d="M-13-5h26l-3 21h-20Z" fill="#6cbf72" stroke="#4e7f4c" stroke-width="2"/><path d="M-16-5h32" stroke="#8a6a45" stroke-width="3" stroke-linecap="round"/><path d="M-4-11h8v6h-8Z" fill="#8a6a45"/><path d="M-5 4 0-2l5 6M-6 6l3 6h6" fill="none" stroke="#fdfdf7" stroke-width="2" stroke-linecap="round"/>`,
+    // 41-50 상상의 산
+    `<path d="M-17-18h34v21h-19l-9 8v-8h-6Z" fill="#f4ecff" stroke="#6c5391" stroke-width="2"/><path d="M0-14a5 5 0 0 1 8 5l-8 8-8-8a5 5 0 0 1 8-5Z" fill="#ef7d8e"/>`,
+    `<path d="M0 16V-15" stroke="#efe6ff" stroke-width="3.5"/><path d="M-16-15h32" stroke="#efe6ff" stroke-width="3.5" stroke-linecap="round"/><path d="M-16-15v6m32-6v6" stroke="#efe6ff" stroke-width="2"/><path d="M-25-9h18l-5 9h-8Z" fill="#ffd166" stroke="#6c5391" stroke-width="2"/><path d="M7-9h18l-5 9h-8Z" fill="#8fd0e8" stroke="#6c5391" stroke-width="2"/><path d="M-9 16h18" stroke="#efe6ff" stroke-width="3.5" stroke-linecap="round"/>`,
+    `<path d="M-11 16V-19" stroke="#efe6ff" stroke-width="3.5"/><path d="M-11-19h25l-5 7 5 7h-25Z" fill="#ffd166" stroke="#6c5391" stroke-width="2"/><text x="1" y="-7" font-size="12" font-weight="800" fill="#6c5391" text-anchor="middle">?</text>`,
+    `<circle cx="-8" cy="0" r="9" fill="none" stroke="#ffd166" stroke-width="4.5"/><circle cx="8" cy="0" r="9" fill="none" stroke="#8fd0e8" stroke-width="4.5"/>`,
+    `<path d="M11-19q9 5 4 15" fill="none" stroke="#ef7d8e" stroke-width="3" stroke-linecap="round"/><path d="M-17 0q8-6 17 0 9-6 17 0v14q-8-6-17 0-9-6-17 0Z" fill="#f7f0ff" stroke="#6c5391" stroke-width="2"/><path d="M0 0v14" stroke="#6c5391" stroke-width="2"/>`,
+    `<path d="M13-14v-9l9 4.5-9 4.5" fill="#ef7d8e" stroke="#6c5391" stroke-width="1.5"/><path d="M-16 16V-6h32v22Z" fill="#e7dcf8" stroke="#6c5391" stroke-width="2"/><path d="M-16-6v-9h7v4h6v-4h6v4h6v-4h7v9Z" fill="#cdb8ec" stroke="#6c5391" stroke-width="2"/><path d="M-4 16V7a4 4 0 0 1 8 0v9Z" fill="#8c6fb8"/>`,
+    `<path d="M-16 0h32v16h-32Z" fill="#c9945c" stroke="#6a4b30" stroke-width="2"/><path d="M-16 0q16-15 32 0Z" fill="#e0b070" stroke="#6a4b30" stroke-width="2"/><rect x="-4" y="2" width="8" height="9" rx="2" fill="#ffd166" stroke="#6a4b30" stroke-width="1.5"/>`,
+    `<path d="M-17-4h8l11-11v26L-9 4h-8Z" fill="#ffd166" stroke="#6c5391" stroke-width="2"/><path d="M8-6q4 5 0 11m6-17q8 10 0 23" fill="none" stroke="#8fd0e8" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<path d="M0-21a12 12 0 0 1 7 21v3H-7v-3a12 12 0 0 1 7-21Z" fill="#fff3c4" stroke="#6c5391" stroke-width="2"/><path d="M-7 6h14m-11 6h8" stroke="#6c5391" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<path d="M-10-17h20v8a10 10 0 0 1-20 0Z" fill="#ffd166" stroke="#6c5391" stroke-width="2"/><path d="M-10-15h-7a7 7 0 0 0 7 9m20-9h7a7 7 0 0 1-7 9" fill="none" stroke="#6c5391" stroke-width="2"/><path d="M-3 1h6v7h-6Z" fill="#e0a63f"/><path d="M-11 8h22v8h-22Z" fill="#cdb8ec" stroke="#6c5391" stroke-width="2"/>`
+  ];
+  function landmarks(r){
+    return `<g class="map-landmarks">${LANDMARK_SLOTS.map(([dx,dy],i)=>{
+      const art=LANDMARK_ART[r*10+i];
+      if(!art)return '';
+      const [x,y]=NODE_POINTS[i];
+      return `<g transform="translate(${x+dx} ${y+dy})"><ellipse cy="18" rx="16" ry="4.5" fill="#25402f" opacity=".18"/>${art}</g>`;
+    }).join('')}</g>`;
+  }
+
   function mapDetails(r) {
     const flowers = [[305,175],[350,245],[610,175],[665,325],[370,355],[185,420]].map(([x,y],i)=>`<g transform="translate(${x} ${y})"><path d="M0 0v9m0-3-5-3" stroke="#56866b" stroke-width="2"/><circle r="4" fill="${['#fff5cd','#f5aac0','#ffc56e'][i%3]}"/><circle r="1.5" fill="#fffdf0"/></g>`).join('');
     const cottage = (x,y,color) => `<g transform="translate(${x} ${y})"><ellipse cy="33" rx="30" ry="7" fill="#314f4220"/><rect x="-23" y="-8" width="46" height="40" rx="5" fill="#fff2d5" stroke="#957659" stroke-width="2"/><path d="M-29-7 0-29 29-7Z" fill="${color}" stroke="#795f52" stroke-width="2"/><rect x="-6" y="10" width="13" height="22" rx="5" fill="#658a84"/><path d="M-17 3h8v9h-8zm26 0h8v9H9z" fill="#f6ce70"/></g>`;
@@ -471,11 +543,12 @@
           <path d="M0 10v36" stroke="#7c5835" stroke-width="7"/>
           <ellipse cx="0" cy="0" rx="24" ry="22" fill="#599e52"/><circle cx="-8" cy="-5" r="4" fill="#e53935"/><circle cx="10" cy="2" r="4" fill="#e53935"/><circle cx="-2" cy="11" r="4" fill="#e53935"/>
         </g>
-        ${tree(70,210,.85)}${tree(80,260,.65)}${tree(710,230,.75)}${tree(550,440,.65)}${tree(760,95,.8)}
+        ${tree(70,210,.85)}${tree(80,260,.65)}${tree(766,214,.75)}${tree(550,440,.65)}${tree(760,95,.8)}
         <g transform="translate(170 310)">
           <path d="M0 10v8" stroke="#eae5d8" stroke-width="5"/>
           <path d="M-12 10q12 -14 24 0Z" fill="#e53935"/><circle cx="-4" cy="6" r="1.5" fill="#ffffff"/><circle cx="4" cy="7" r="1.5" fill="#ffffff"/>
         </g>
+        ${landmarks(r)}
         <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#5c8a4d" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#e53935"/><text y="27" font-size="12" font-weight="bold" fill="#33691e" text-anchor="middle">숲</text></g>
       </svg>`;
     }
@@ -521,7 +594,8 @@
           <rect x="6" y="8" width="12" height="12" rx="2" fill="#e1f5fe" stroke="#5d4037" stroke-width="1.5"/>
           <rect x="26" y="12" width="12" height="20" rx="2" fill="#795548"/>
         </g>
-        ${tree(75,220,.7)}${tree(715,250,.65)}${tree(550,430,.6)}
+        ${tree(75,220,.7)}${tree(768,232,.65)}${tree(550,430,.6)}
+        ${landmarks(r)}
         <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#c27d38" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#e53935"/><text y="27" font-size="12" font-weight="bold" fill="#b26a00" text-anchor="middle">마을</text></g>
       </svg>`;
     }
@@ -570,6 +644,7 @@
           <path d="M6 0q-12 -20 -16 -8" stroke="#2e7d32" stroke-width="4" fill="none"/>
           <path d="M6 0q12 -20 16 -8" stroke="#2e7d32" stroke-width="4" fill="none"/>
         </g>
+        ${landmarks(r)}
         <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#0097a7" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#e53935"/><text y="27" font-size="12" font-weight="bold" fill="#00838f" text-anchor="middle">항구</text></g>
       </svg>`;
     }
@@ -604,7 +679,8 @@
           <line x1="0" y1="9" x2="26" y2="9" stroke="#b26a00" stroke-width="2"/>
           <circle cx="13" cy="9" r="3" fill="#e53935"/>
         </g>
-        ${tree(70,210,.8)}${tree(710,230,.75)}${tree(550,435,.65)}
+        ${tree(70,210,.8)}${tree(766,214,.75)}${tree(550,435,.65)}
+        ${landmarks(r)}
         <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#2e7d32" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#e53935"/><text y="27" font-size="12" font-weight="bold" fill="#1b5e20" text-anchor="middle">탐험</text></g>
       </svg>`;
     }
@@ -640,15 +716,16 @@
       <g transform="translate(250 215)">
         <polygon points="0,20 5,0 10,20" fill="#80deea"/><polygon points="8,22 14,6 20,22" fill="#e040fb"/>
       </g>
-      ${tree(70,210,.75)}${tree(710,230,.7)}${tree(550,430,.6)}
-      <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#6a1b9a" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#ffd54f"/><text y="27" font-size="12" font-weight="bold" fill="#4a148c" text-anchor="middle">상상</text></g>
+      ${tree(70,210,.75)}${tree(766,214,.7)}${tree(550,430,.6)}
+      ${landmarks(r)}
+        <g transform="translate(805 38)"><circle r="19" fill="#ffffff" stroke="#6a1b9a" stroke-width="2.5"/><path d="M0 -13 4 0 0 13 -4 0Z" fill="#ffd54f"/><text y="27" font-size="12" font-weight="bold" fill="#4a148c" text-anchor="middle">상상</text></g>
     </svg>`;
   }
   function renderMap(){
     const r=regions[region],group=days.slice(region*10,region*10+10);
-    const points=[[120,375],[230,295],[170,160],[340,95],[520,105],[730,145],[640,250],[460,290],[590,375],[750,350]];
+    const points=NODE_POINTS;
     const done=completedCount();
-    return `<div class="lead"><div><div class="eyebrow">LITTLE EXPLORERS · 50일의 모험</div><h1>${profileId==='aiden'?'Aiden':'Luca'}, 오늘은 어디로 떠날까?</h1><p>작은 발걸음마다, 영어가 자라나요.</p></div><div class="journey-count">${icon('flag')}<div><strong>${done}</strong> / 50일<br><span class="note">탐험 완료</span></div></div></div><div class="region-tabs" role="group" aria-label="탐험 지역">${regions.map((r,i)=>`<button data-action="region" data-value="${i}" aria-pressed="${region===i}">${i+1}. ${r.name}<small>Day ${i*10+1}–${i*10+10}</small></button>`).join('')}</div><div class="map-layout"><div class="map-card" data-region="${region}"><div class="map-caption"><h2>${r.name}</h2><span>번호를 눌러 출발해요</span></div><div class="map-scroll"><div class="island">${scenery(region)}${group.map((d,i)=>`<button class="map-node ${d.day===day?'current':''} ${C.isCleared(profile,d.day)?'done':''}" style="left:${points[i][0]/9}%;top:${points[i][1]/4.8}%" data-action="day" data-value="${d.day}" aria-label="Day ${d.day}, ${esc(d.title)}, ${C.isCleared(profile,d.day)?'완료':'탐험하기'}" ${d.day===day?'aria-current="true"':''}>${d.day===day?`<span class="map-avatar-pin" aria-hidden="true"><span class="pin-avatar"><img src="assets/profile_${profileId}.png" alt=""></span><span class="pin-tag">${profileId==='aiden'?'Aiden':'Luca'}</span><span class="pin-pointer"></span></span>`:''}${C.isCleared(profile,d.day)?'✓':d.day}<span class="node-label">Day ${d.day}</span></button>`).join('')}</div></div><div class="map-legend"><span><i></i>지금 내 위치</span><span><i class="done-dot"></i>탐험 완료</span><span><i class="wait-dot"></i>기다리는 모험</span></div></div><aside><div class="side-card"><span class="day-tag">오늘의 모험 · DAY ${day}</span><h2>${esc(data().title)}</h2><p class="muted">새로운 단어와 표현 12개</p><ul class="step-list">${[['cards','단어 만나기'],['comic','만화 속으로'],['quiz','단어 맞히기'],['game','놀면서 기억하기']].map(([id,name],i)=>`<li><span class="step-check ${record()[id]?'done':''}">${record()[id]?'✓':i+1}</span>${name}</li>`).join('')}</ul><button class="primary wide" data-action="tab" data-value="cards">모험 시작 ${icon('arrow')}</button></div><div class="side-card tip"><h3>${icon('leaf')} 조금씩, 즐겁게</h3><p>${r.hint}</p><p>한 번에 4단어씩 나눠 해도 좋아요.</p></div></aside></div>`;
+    return `<div class="lead"><div><div class="eyebrow">LITTLE EXPLORERS · 50일의 모험</div><h1><span class="lead-avatar"><img src="assets/profile_${profileId}.png" alt=""></span>${profileId==='aiden'?'Aiden':'Luca'}, 오늘은 어디로 떠날까?</h1><p>작은 발걸음마다, 영어가 자라나요.</p></div><div class="journey-count">${icon('flag')}<div><strong>${done}</strong> / 50일<br><span class="note">탐험 완료</span></div></div></div><div class="region-tabs" role="group" aria-label="탐험 지역">${regions.map((r,i)=>`<button data-action="region" data-value="${i}" aria-pressed="${region===i}">${i+1}. ${r.name}<small>Day ${i*10+1}–${i*10+10}</small></button>`).join('')}</div><div class="map-layout"><div class="map-card" data-region="${region}"><div class="map-caption"><h2>${r.name}</h2><span>번호를 눌러 출발해요</span></div><div class="map-scroll"><div class="island">${scenery(region)}${group.map((d,i)=>`<button class="map-node ${d.day===day?'current':''} ${C.isCleared(profile,d.day)?'done':''}" style="left:${points[i][0]/9}%;top:${points[i][1]/4.8}%" data-action="day" data-value="${d.day}" aria-label="Day ${d.day}, ${esc(d.title)}, ${C.isCleared(profile,d.day)?'완료':'탐험하기'}" ${d.day===day?'aria-current="true"':''}>${d.day===day?`<span class="map-avatar-pin" aria-hidden="true"><span class="pin-avatar"><img src="assets/profile_${profileId}.png" alt=""></span><span class="pin-tag">${profileId==='aiden'?'Aiden':'Luca'}</span><span class="pin-pointer"></span></span>`:''}${C.isCleared(profile,d.day)?'✓':d.day}<span class="node-label">Day ${d.day}</span></button>`).join('')}</div></div><div class="map-legend"><span><i></i>지금 내 위치</span><span><i class="done-dot"></i>탐험 완료</span><span><i class="wait-dot"></i>기다리는 모험</span></div></div><aside><div class="side-card"><span class="day-tag">오늘의 모험 · DAY ${day}</span><h2>${esc(data().title)}</h2><p class="muted">새로운 단어와 표현 12개</p><ul class="step-list">${[['cards','단어 만나기'],['comic','만화 속으로'],['quiz','단어 맞히기'],['game','놀면서 기억하기']].map(([id,name],i)=>`<li><span class="step-check ${record()[id]?'done':''}">${record()[id]?'✓':i+1}</span>${name}</li>`).join('')}</ul><button class="primary wide" data-action="tab" data-value="cards">모험 시작 ${icon('arrow')}</button></div><div class="side-card tip"><h3>${icon('leaf')} 조금씩, 즐겁게</h3><p>${r.hint}</p><p>한 번에 4단어씩 나눠 해도 좋아요.</p></div></aside></div>`;
   }
   function renderCards(){
     const d=data(),w=d.words[cardIndex],rec=record();rec.seen ||= [];if(!rec.seen.includes(cardIndex)){rec.seen.push(cardIndex);save();}

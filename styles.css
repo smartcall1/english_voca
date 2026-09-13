@@ -25,9 +25,9 @@ button .icon{margin-right:6px}
 .brand b{display:block;font-size:1.28rem}
 .brand-mark{display:grid;place-items:center;background:var(--green);color:#ffe08a;border-radius:15px;width:44px;height:48px;font-size:34px;transform:rotate(-7deg)}
 .header-actions{display:flex;gap:10px;align-items:center}
-.profiles{display:flex;border-radius:15px;padding:3px;background:#e9eade;gap:3px}
-.profiles button{border:0;background:transparent;min-width:88px;min-height:42px;padding:4px 12px 4px 6px;border-radius:12px;font-size:1rem;display:inline-flex;align-items:center;gap:7px}
-.profile-thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.15);flex-shrink:0}
+.profiles{display:flex;border-radius:16px;padding:3px;background:#e9eade;gap:3px}
+.profiles button{border:0;background:transparent;min-width:96px;min-height:46px;padding:4px 14px 4px 6px;border-radius:13px;font-size:1.05rem;display:inline-flex;align-items:center;gap:8px}
+.profile-thumb{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2.5px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.15);flex-shrink:0}
 .profiles button[aria-pressed=true]{background:var(--green);color:white;box-shadow:0 3px 0 #0c5042}
 .profiles button[aria-pressed=true] .profile-thumb{border-color:#ffe08a;box-shadow:0 0 0 2px #ffe08a,0 2px 5px rgba(0,0,0,0.2)}
 .star-pill{background:#fff0bf;border-color:#ebcf7d;min-width:84px;min-height:42px;padding:5px 14px;border-radius:14px}
@@ -44,7 +44,9 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .eyebrow{font-size:1rem;color:var(--green);font-weight:800;letter-spacing:.05em;margin-bottom:3px}
 .muted{color:var(--muted)}
 .lead{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:4px}
-.lead h1{font-size:1.4rem;line-height:1.2}
+.lead h1{font-size:1.45rem;line-height:1.2;display:flex;align-items:center;gap:10px}
+.lead-avatar{width:42px;height:42px;border-radius:50%;overflow:hidden;border:2.5px solid #ffd54f;box-shadow:0 2px 6px rgba(0,0,0,0.15);display:inline-flex;flex-shrink:0}
+.lead-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .lead p{color:var(--muted);margin:1px 0 0;font-size:1rem}
 .journey-count{background:white;border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:10px;padding:4px 14px;white-space:nowrap}
 .journey-count strong{font-size:1.3rem;color:var(--green)}
@@ -69,11 +71,11 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .map-node.done{background:linear-gradient(135deg,#1b876f,#106351);color:white;box-shadow:0 4px 0 #0d4a3c}
 @keyframes current-bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-56%) scale(1.08)}}
 .node-label{position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);background:#fffdf2fa;white-space:nowrap;border-radius:6px;font-size:13px;font-weight:700;padding:1px 6px;color:#365840;border:1px solid #d4dfcb;box-shadow:0 2px 4px #00000010}
-.map-avatar-pin{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:20;animation:pin-bounce 2s infinite ease-in-out}
-.pin-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;border:3px solid #ffd54f;box-shadow:0 4px 12px rgba(0,0,0,0.28),0 0 0 2px rgba(255,255,255,0.95);background:#fff;display:flex;align-items:center;justify-content:center}
+.map-avatar-pin{position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:20;animation:pin-bounce 2s infinite ease-in-out}
+.pin-avatar{width:68px;height:68px;border-radius:50%;overflow:hidden;border:3.5px solid #ffd54f;box-shadow:0 5px 14px rgba(0,0,0,0.3),0 0 0 2.5px rgba(255,255,255,0.95);background:#fff;display:flex;align-items:center;justify-content:center}
 .pin-avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.pin-tag{background:#fffdf6;color:#a65800;font-size:12px;font-weight:850;padding:1.5px 8px;border-radius:9px;border:1.5px solid #ffd54f;margin-top:-6px;box-shadow:0 2px 5px rgba(0,0,0,0.18);white-space:nowrap;letter-spacing:-.01em}
-.pin-pointer{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ffd54f;margin-top:-1px}
+.pin-tag{background:#fffdf6;color:#8a4600;font-size:13px;font-weight:900;padding:2px 10px;border-radius:10px;border:1.5px solid #ffd54f;margin-top:-7px;box-shadow:0 2px 6px rgba(0,0,0,0.2);white-space:nowrap;letter-spacing:-.01em}
+.pin-pointer{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #ffd54f;margin-top:-1px}
 @keyframes pin-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 .map-legend{display:flex;justify-content:center;gap:14px;font-size:1rem;padding:5px 10px;background:#f7f9ee;flex-wrap:wrap}
 .map-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:#ef915c}
@@ -377,7 +379,7 @@ dialog-title{display:flex;align-items:center;justify-content:space-between;gap:1
 @media(max-width:1150px){.header{padding:10px 18px}.map-layout{grid-template-columns:minmax(0,1fr) 260px}.side-card{padding:14px}.nav{justify-content:flex-start;overflow-x:auto}.nav button{font-size:1rem;padding:6px 10px}main{padding:12px 18px 24px}.learning-layout{grid-template-columns:minmax(0,1fr) 240px}.region-tabs button{font-size:1rem}.game-description{padding:14px!important}.badges{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:850px){.header{flex-wrap:wrap;gap:12px}.brand b{display:inline;font-size:1.1rem}.brand-mark{width:40px;height:40px}.header-actions{width:100%;justify-content:space-between}.lead{align-items:flex-start}.lead h1{font-size:1.45rem}.journey-count{padding:8px;gap:6px}.map-layout,.learning-layout{grid-template-columns:1fr}.map-layout aside{display:grid;grid-template-columns:1fr 1fr;gap:14px}.side-card{margin-bottom:0}.region-tabs{display:grid;grid-template-columns:repeat(3,1fr)}.learning-layout aside .word-list{grid-template-columns:repeat(4,1fr)}.comic-grid{gap:14px}.speech-bubble{padding:12px}.game-menu{grid-template-columns:1fr}.game-option{display:grid;grid-template-columns:160px 1fr}.game-option .game-preview{height:100%}.game-stop{width:44px;height:44px}.step-strip button{font-size:1rem}.session-heading{flex-wrap:wrap}.badges{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){main{padding:16px 12px 30px}.header{padding:10px 12px}.brand{font-size:1rem}.settings-button{padding:6px 10px}.lead{display:block}.journey-count{display:inline-flex;margin-top:12px}.region-tabs{grid-template-columns:1fr 1fr}.map-layout aside{display:block}.side-card{margin-bottom:12px}.step-strip{display:grid;grid-template-columns:1fr 1fr}.word-card{padding:16px}.word{font-size:44px}.word-list{grid-template-columns:repeat(3,1fr)!important}.comic-grid{grid-template-columns:1fr}.choices{grid-template-columns:1fr}.choices button{min-height:56px}.game-stage{padding:12px 8px}.game-path{gap:2px;margin-left:0;margin-right:0}.game-stop{width:34px;height:38px;font-size:16px;border-width:2px}.game-stop .icon{width:20px;height:20px}.mailboxes{grid-template-columns:1fr}.mailboxes button{min-height:70px;border-radius:18px;padding:10px}.mailboxes button:before{margin:0 14px 8px;height:5px}.game-top{flex-wrap:wrap}.game-option{grid-template-columns:100px 1fr}.game-option .game-preview .icon{width:50px;height:50px}.badges{grid-template-columns:1fr 1fr}.question{font-size:1.45rem}.train-actions{flex-wrap:wrap}.dialog-title{flex-wrap:wrap}dialog label{flex-wrap:wrap}.word-count{gap:10px;flex-wrap:wrap}}
-@media(max-width:560px){.header-actions{gap:4px}.profiles button{min-width:64px;padding:6px 10px}.star-pill{min-width:68px;padding:6px 10px}.settings-button{white-space:nowrap}.map-caption{display:block}.map-caption span{display:block;margin-top:4px}}
+@media(max-width:560px){.header-actions{gap:4px}.profiles button{min-width:48px;padding:3px 8px 3px 5px;font-size:.88rem;gap:4px}.profile-thumb{width:24px;height:24px}.star-pill{min-width:54px;padding:4px 8px;font-size:.88rem}.settings-button{padding:4px 8px;font-size:.88rem;white-space:nowrap}.map-caption{display:block}.map-caption span{display:block;margin-top:4px}}
 
 .star-pill.bump{animation:star-pill-pop .6s cubic-bezier(.17,.89,.32,1.35)}
 @keyframes star-pill-pop{0%{transform:scale(1)}35%{transform:scale(1.5) rotate(-10deg);background:#ffe066;box-shadow:0 0 35px #ffb300,0 0 10px #ff6f00}65%{transform:scale(.9) rotate(4deg)}100%{transform:scale(1) rotate(0)}}

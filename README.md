@@ -64,7 +64,8 @@ english_voca/
 ├── core.js                  # 순수 진도 관리, 퀴즈/선택지 생성 알고리즘
 ├── curriculum-notes.md      # 어휘 선정 근거 및 교육과정 매핑 참고자료
 ├── assets/
-│   ├── app-icon.ico         # 애플리케이션 파비콘
+│   ├── app-icon.ico         # 애플리케이션 파비콘 (16/32/48/64/128/256 다중 해상도)
+│   ├── app-icon.png         # 고해상도 앱 대표 아이콘 (512x512)
 │   ├── profile_aiden.png    # Aiden 정밀 크롭 프로필 아바타 (지도 말 & 헤더)
 │   ├── profile_luca.png     # Luca 정밀 크롭 프로필 아바타 (지도 말 & 헤더)
 │   ├── comic-01.png ~ 50.png# 50일 전편 고화질 4컷 만화 일러스트 (각 1024x1024)

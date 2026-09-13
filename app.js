@@ -931,9 +931,11 @@
       <rect x="16" y="26" width="6" height="28" fill="#e5a93b" stroke="#7a4f0d" stroke-width="1.5"/>
       <rect x="46" y="26" width="6" height="28" fill="#e5a93b" stroke="#7a4f0d" stroke-width="1.5"/>
       ${isOpen ? `
+        <!-- 활짝 젖혀진 뚜껑 (보물보다 먼저 그려야 보물이 가려지지 않아요) -->
+        <path d="M4 24L14 4h36l10 20Z" fill="#aa6c35" stroke="#4a2c10" stroke-width="3" class="chest-lid open" transform="translate(0 -12) rotate(-8 34 4)"/>
         <!-- 눈부신 보물 대폭발 -->
         <g class="gold-burst">
-          <circle cx="34" cy="20" r="16" fill="radial-gradient(circle,#fff59d,#ffb300)" opacity="0.6"/>
+          <circle cx="34" cy="22" r="15" fill="#ffca28" opacity="0.45"/>
           <!-- 황금 코인들 -->
           <circle cx="24" cy="20" r="5" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" class="chest-coin c1"/>
           <circle cx="34" cy="16" r="6" fill="#ffe082" stroke="#b8860b" stroke-width="1.5" class="chest-coin c2"/>
@@ -948,8 +950,6 @@
           <path d="M14 6l1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5z" fill="#fff59d" class="chest-sparkle sp2"/>
           <path d="M54 5l1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5z" fill="#fff59d" class="chest-sparkle sp3"/>
         </g>
-        <!-- 활짝 열린 뚜껑 -->
-        <path d="M6 26L16 6h36l10 20Z" fill="#aa6c35" stroke="#4a2c10" stroke-width="3" class="chest-lid open"/>
       ` : `
         <!-- 닫힌 뚜껑 -->
         <path d="M5 26C5 15 18 9 34 9s29 6 29 17Z" fill="#a4652f" stroke="#4a2c10" stroke-width="3" class="chest-lid"/>
@@ -1052,7 +1052,7 @@
           <p>단어를 맞혀 보물을 찾고, 기차를 달리고, 소포를 배달해 봐요.</p>
         </div>
       </div>
-      <div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 섬 끝의 보물상자를 찾아요.','6개의 징검다리'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개'],['delivery','van','듣고 배달하기','영어 소리를 듣고, 맞는 우편함에 소포를 배달해요.','6번의 배달']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n} · 시간제한 없이</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">어떤 놀이든 여러 번 할 수 있어요. 별은 미션마다 한 번만 받아요.</p>`;
+      <div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 연속으로 맞혀 금화를 모아요.','6개의 징검다리 · 갈림길 보물상자'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개 · 칸이 늘수록 높아지는 소리'],['delivery','van','듣고 배달하기','소리를 듣고 우편함에 배달해요. 다시 듣기 없이 맞히면 ⚡속달!','6번의 배달 · 속달 도전']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n}</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">하트 ❤️ 세 개로 시간제한 없이 도전해요. 하트를 다 써도 다시 채워 줄 테니 걱정 말아요. 별은 미션마다 한 번만 받아요.</p>`;
   }
 
   const HEART_MAX = 3, FORK_STEPS = [1, 3];
@@ -1195,6 +1195,9 @@
         stops[game.index+1].classList.add('stone-landing');
       }
       if(game.index+1===6){
+        // 마지막 징검다리를 건넜으니 보물상자를 실제로 활짝 열어 줘요
+        const anchor=document.querySelector('.chest-anchor');
+        if(anchor)anchor.innerHTML=treasureChestSvg(true);
         chime('bonus-slam');
         launchConfetti(true);
       }
@@ -1204,9 +1207,10 @@
     }
     document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"]').forEach(b=>b.disabled=true);
     if(game.streak>=2){
-      const streak=game.streak, label=comboLabel(streak);
+      const streak=game.streak, label=comboLabel(streak), at=game.index;
       setTimeout(()=>chime('combo',streak-2),220);
-      setTimeout(()=>{const el=$('feedback');if(el&&game?.answered)el.textContent=`${el.textContent} ${label}`;},260);
+      // 다음 미션으로 이미 넘어갔다면 새 화면에 덧붙이지 않아요
+      setTimeout(()=>{const el=$('feedback');if(el&&game?.answered&&game.index===at)el.textContent=`${el.textContent} ${label}`;},260);
     }
     refreshHud(game.streak>=2);
     const fork=game.mode==='treasure'&&FORK_STEPS.includes(game.index);

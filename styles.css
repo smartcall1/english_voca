@@ -268,7 +268,8 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .fork-row button svg{width:132px;height:112px}
 .fork-row button:nth-child(2){animation-delay:.25s}
 .fork-row button:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #c79a3f}
-.fork-row button.fork-open{animation:none;background:linear-gradient(135deg,#fff8e1,#ffe082)}
+.fork-row button.fork-open{animation:none;background:linear-gradient(135deg,#fff8e1,#ffe082);border-color:#f0a93c;opacity:1}
+.fork-row button:disabled:not(.fork-open){opacity:.45;animation:none}
 @keyframes fork-wiggle{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
 
 /* 문장이 틀리면 마지막 칸이 덜컹 떨어져요 */

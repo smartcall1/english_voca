@@ -113,7 +113,65 @@ const assert = require('node:assert/strict');
   const elapsedDelivery = (Date.now() - tDelivery) / 1000;
   console.log(`✅ 배달 1번 -> 2번 자동 전환 성공! (소요 시간: ${elapsedDelivery.toFixed(2)}초)`);
 
-  console.log('\n🎉 문장 기차와 배달 게임 모두 2초 자동 넘김 및 수동 즉시 넘김 완벽 검증 통과!');
+  // 3. 보물길 탐험 (Treasure) 안내 문구 제거 및 2초 자동 넘김 테스트
+  console.log('\n[3. 보물길 탐험 (Treasure) 가이드 문구 제거 및 2초 자동 넘김 테스트]');
+  await page.click('[data-action="game-menu"]');
+  await page.click('[data-action="start-game"][data-value="treasure"]');
+
+  // 프롬프트에 불필요한 <p> 문장이 없고 .question 단어만 깔끔히 표기되는지 검증
+  const promptPCount = await page.evaluate(() => document.querySelectorAll('.game-prompt p').length);
+  assert.equal(promptPCount, 0, '보물길 탐험 프롬프트에는 가이드 문장(<p>)이 없어야 합니다.');
+  const targetKoWord = await page.$eval('.game-prompt .question', el => el.textContent.trim());
+  console.log('표기된 대상 단어:', targetKoWord, '(가이드 문단 태그 0개 확인 완료)');
+  assert.ok(targetKoWord.length > 0, '단어 표기가 존재해야 합니다.');
+
+  // 1번 미션 정답 갈림길 선택
+  const targetEnWord = await page.evaluate((ko) => {
+    return window.CURRICULUM[0].words.find(w => w.ko === ko).en;
+  }, targetKoWord);
+  console.log('1번 보물길 정답 단어:', targetEnWord);
+
+  const correctTrailIdx = await page.evaluate((en) => {
+    const btns = [...document.querySelectorAll('.world-destinations.trail-options button')];
+    return btns.findIndex(b => b.querySelector('strong').textContent.trim() === en);
+  }, targetEnWord);
+
+  await page.click(`.world-destinations.trail-options button[data-value="${correctTrailIdx}"]`);
+  await page.waitForSelector('#game-next:not([hidden])');
+
+  const treasureTimerNum = await page.$eval('#game-timer-num', el => el.textContent.trim());
+  console.log('보물길 정답 후 타이머 초기 숫자:', treasureTimerNum);
+  assert.equal(treasureTimerNum, '2', '보물길 타이머 초기 숫자는 2여야 합니다.');
+
+  console.log('수동 클릭 없이 2초 자동 넘김 대기 중...');
+  const tTreasure = Date.now();
+  await page.waitForFunction(() => {
+    const heading = document.querySelector('.game-top h2');
+    return heading && heading.textContent.includes('2 /');
+  }, { timeout: 4000 });
+  const elapsedTreasure = (Date.now() - tTreasure) / 1000;
+  console.log(`✅ 보물길 1번 -> 2번 자동 전환 성공! (소요 시간: ${elapsedTreasure.toFixed(2)}초)`);
+
+  // 미션 2/6: 수동 클릭 시 즉시 전환되는지 검증
+  const targetKo2 = await page.$eval('.game-prompt .question', el => el.textContent.trim());
+  const targetEn2 = await page.evaluate((ko) => {
+    return window.CURRICULUM[0].words.find(w => w.ko === ko).en;
+  }, targetKo2);
+  const correctTrail2 = await page.evaluate((en) => {
+    const btns = [...document.querySelectorAll('.world-destinations.trail-options button')];
+    return btns.findIndex(b => b.querySelector('strong').textContent.trim() === en);
+  }, targetEn2);
+  await page.click(`.world-destinations.trail-options button[data-value="${correctTrail2}"]`);
+  await page.waitForSelector('#game-next:not([hidden])');
+
+  await page.click('#game-next');
+  await page.waitForFunction(() => {
+    const heading = document.querySelector('.game-top h2');
+    return heading && heading.textContent.includes('3 /');
+  }, { timeout: 1000 });
+  console.log('✅ 보물길 2번 -> 3번 수동 클릭 즉시 전환 성공!');
+
+  console.log('\n🎉 문장 기차, 배달 게임, 보물길 탐험 모두 가이드 정리 및 2초 자동/수동 전환 완벽 통과!');
   await browser.close();
 })().catch(err => {
   console.error('테스트 실패:', err);

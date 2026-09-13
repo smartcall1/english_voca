@@ -1151,7 +1151,7 @@
         <div class="adventure-caption"><strong>${treasure?scene[0]+' '+scene[1]:'📦 주문 배달 마을'}</strong><span>${game.index}곳 완료${game.reviewed.size?' · 기억 도전 포함':''}</span></div>
         <div class="journey-meter"><span style="width:${pct}%"></span></div>
         <div class="world-actor">${treasure?characterSvg(profileId,'standing'):deliveryVanSvg(profileId)}<span id="world-message">${treasure?'어느 길로 갈까?':'주문을 듣고 배달해요!'}</span></div>
-        <div class="game-prompt">${treasure?`<p>${scene[2]}</p><h2 class="question">${esc(w.ko)}</h2>`:`<button class="primary" data-action="game-listen">${icon('sound')}주문 다시 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p><p>몇 번이든 들어도 좋아요. 뜻이 맞는 집을 골라요.</p>`}</div>
+        <div class="game-prompt">${treasure?`<h2 class="question">${esc(w.ko)}</h2>`:`<button class="primary" data-action="game-listen">${icon('sound')}주문 다시 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p><p>몇 번이든 들어도 좋아요. 뜻이 맞는 집을 골라요.</p>`}</div>
         <div class="world-destinations ${treasure?'trail-options':'mailboxes'}">${game.choices.map((choice,i)=>`<button class="destination" data-action="game-answer" data-value="${i}" ${treasure?'lang="en-AU"':''}><span class="destination-art" aria-hidden="true">${destinationArt(treasure,chapter,i)}</span><strong>${esc(treasure?choice.en:choice.ko)}</strong><span class="arrival-mark" aria-hidden="true">${treasure?'✨':'📦 ✓'}</span></button>`).join('')}</div>
       </div>`;
 
@@ -1205,7 +1205,7 @@
     refreshHud(game.streak>=2);
     clearAutoAdvance();
     const nextBtn=$('game-next');
-    const isAutoMode=game.mode==='train'||game.mode==='delivery';
+    const isAutoMode=['train','delivery','treasure'].includes(game.mode);
     const isFinal=game.index+1===game.queue.length;
     const nextLabel=$('game-next-label');
     const timerWrap=$('game-timer-wrap');

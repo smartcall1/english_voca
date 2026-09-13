@@ -73,7 +73,15 @@ const puppeteer = require('D:/Codes/Blogger_bot/node_modules/puppeteer');
     });
     await page.click(`[data-action="game-answer"][data-value="${value}"]`);
     if (i < 5) {
-      await page.click('[data-action="game-next"]');
+      // 보물 갈림길이 뜨면 상자를 고르고, 자동 진행이 먼저 일어났으면 버튼 클릭을 건너뛴다.
+      const fork = await page.$('.fork-choice button:not([disabled])');
+      if (fork) {
+        await fork.click();
+        await page.waitForFunction(() => !document.querySelector('.fork-choice'), { timeout: 6000 });
+      }
+      const next = await page.$('#game-next:not([hidden])');
+      if (next) await next.click().catch(() => {});
+      await page.waitForSelector('.game-stage');
     }
   }
 

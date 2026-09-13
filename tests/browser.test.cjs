@@ -15,6 +15,14 @@ fs.mkdirSync(shots,{recursive:true});
  const action=(a,v)=>`[data-action="${a}"]${v===undefined?'':`[data-value="${v}"]`}`;
  const shot=async(name)=>page.screenshot({path:path.join(shots,name+'.png'),fullPage:true});
  const stars=()=>page.$eval('#stars',el=>Number(el.textContent));
+ // 갈림길 상자를 고르고, 자동 진행이 이미 일어났으면 버튼 클릭을 건너뛴다.
+ const nextMission=async()=>{
+  const fork=await page.$('.fork-choice button:not([disabled])');
+  if(fork){await fork.click();await page.waitForFunction(()=>!document.querySelector('.fork-choice'),{timeout:6000});}
+  const btn=await page.$('#game-next:not([hidden])');
+  if(btn)await btn.click().catch(()=>{});
+  await page.waitForSelector('.game-stage,.result');
+ };
  let checks=0;
  const check=(condition,message)=>{assert.ok(condition,message);checks++;console.log('통과: '+message);};
  try{
@@ -45,7 +53,7 @@ fs.mkdirSync(shots,{recursive:true});
   await click(action('start-game','treasure'));await shot('05-treasure-1366');
   for(let i=0;i<6;i++){
    const value=await page.evaluate(()=>{const ko=document.querySelector('.game-prompt .question').textContent;const en=window.CURRICULUM[0].words.find(w=>w.ko===ko).en;return [...document.querySelectorAll('[data-action="game-answer"]')].find(b=>b.textContent===en).dataset.value;});
-   await click(action('game-answer',value));await click(action('game-next'));
+   await click(action('game-answer',value));await nextMission();
   }
   check(await stars()===7,'네 미션 완료시 별4개와 완주 보너스3개');
   await click('#nav '+action('tab','game'));await click(action('start-game','train'));await shot('06-train-1366');
@@ -53,13 +61,13 @@ fs.mkdirSync(shots,{recursive:true});
    const tokens=await page.evaluate(()=>{const ko=document.querySelector('.game-prompt .question').textContent;return window.CURRICULUM[0].words.find(w=>w.exampleKo===ko).example.split(/\s+/);});
    if(i===0){await click(action('train-check'));check(await page.$eval('#feedback',el=>el.classList.contains('error')),'미완성 문장 출발 방지');}
    for(const token of tokens){const value=await page.$$eval('[data-action="train-token"]',(els,token)=>els.find(el=>!el.disabled&&el.textContent===token).dataset.value,token);await click(action('train-token',value));}
-   await click(action('train-check'));await click(action('game-next'));
+   await click(action('train-check'));await nextMission();
   }
   check(await stars()===7,'다른 게임 재완료로 보상 중복 없음');
   await click('#nav '+action('tab','game'));await click(action('start-game','delivery'));await shot('07-delivery-1366');
   for(let i=0;i<6;i++){
    await click(action('game-meaning'));
-   const value=await page.evaluate(()=>{const ko=document.querySelector('#meaning-hint').textContent;const en=window.CURRICULUM[0].words.find(w=>w.ko===ko).en;return [...document.querySelectorAll('[data-action="game-answer"]')].find(b=>b.textContent===en).dataset.value;});await click(action('game-answer',value));await click(action('game-next'));
+   const value=await page.evaluate(()=>{const ko=document.querySelector('#meaning-hint').textContent;const en=window.CURRICULUM[0].words.find(w=>w.ko===ko).en;return [...document.querySelectorAll('[data-action="game-answer"]')].find(b=>b.textContent===en).dataset.value;});await click(action('game-answer',value));await nextMission();
   }
   check(await stars()===7,'배달 게임 완주 및 중복 보상 방지');
   await click(action('profile','luca'));check(await stars()===0,'Luca 프로필은 진도와 별이 독립적');

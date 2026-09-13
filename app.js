@@ -90,7 +90,7 @@
   }
 
   let profile = profiles[profileId], day = profile.currentDay, region = Math.floor((day - 1) / 10), tab = 'map';
-  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, quizAutoTimer, audioContext;
+  let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, quizAutoTimer, quizCountdownInterval, audioContext;
   let koreanSpeech = true, rate = .9;
   let pendingReset = null;
   function dismissReset() {
@@ -467,14 +467,15 @@
   }
   function advanceQuiz() {
     clearTimeout(quizAutoTimer);
+    clearInterval(quizCountdownInterval);
     if (!quiz || !quiz.answered) return;
     quiz.index++;
     if (quiz.index === 12) mark('quiz');
     render();
   }
-  function resetActivity(){clearTimeout(quizAutoTimer);cancelSpeech();cardIndex=0;exampleRevealed=new Set();comicRead=new Set();comicCut=0;quiz=null;game=null;}
-  function setDay(value,next='cards') {if(!Number.isInteger(value)||value<1||value>50)return;clearTimeout(quizAutoTimer);clearCelebration();resetActivity();day=value;region=Math.floor((day-1)/10);save();navigate(next);}
-  function navigate(value){if(!['map','cards','comic','quiz','game','rewards'].includes(value))return;clearTimeout(quizAutoTimer);cancelSpeech();clearCelebration();if(value!==tab||value==='game'){game=null;quiz=null;}tab=value;render();window.scrollTo({top:0,behavior:'instant'});$('main').focus({preventScroll:true});}
+  function resetActivity(){clearTimeout(quizAutoTimer);clearInterval(quizCountdownInterval);clearAutoAdvance();cancelSpeech();cardIndex=0;exampleRevealed=new Set();comicRead=new Set();comicCut=0;quiz=null;game=null;}
+  function setDay(value,next='cards') {if(!Number.isInteger(value)||value<1||value>50)return;clearTimeout(quizAutoTimer);clearInterval(quizCountdownInterval);clearCelebration();resetActivity();day=value;region=Math.floor((day-1)/10);save();navigate(next);}
+  function navigate(value){if(!['map','cards','comic','quiz','game','rewards'].includes(value))return;clearTimeout(quizAutoTimer);clearInterval(quizCountdownInterval);clearAutoAdvance();cancelSpeech();clearCelebration();if(value!==tab||value==='game'){game=null;quiz=null;}tab=value;render();window.scrollTo({top:0,behavior:'instant'});$('main').focus({preventScroll:true});}
   function nav(){const items=[['map','탐험 지도'],['cards','단어 카드'],['comic','이야기 만화'],['quiz','단어 퀴즈'],['game','놀이 마당']];$('nav').innerHTML=items.map(([id,label])=>`<button data-action="tab" data-value="${id}" ${tab===id?'aria-current="page"':''}>${icon(id)}${label}</button>`).join('');}
   function stepStrip(){return `<div class="step-strip" aria-label="오늘의 네 가지 미션">${[['cards','단어'],['comic','만화'],['quiz','퀴즈'],['game','게임']].map(([id,label],i)=>`<button class="${tab===id?'active':''} ${record()[id]?'complete':''}" data-action="tab" data-value="${id}" ${tab===id?'aria-current="step"':''}>${i+1}. ${label}</button>`).join('')}</div>`;}
   function sessionHeading(title,description){return `<div class="session-heading"><div><div class="eyebrow">DAY ${day} · ${esc(data().title)}</div><h1>${title}</h1><p>${description}</p></div><button data-action="tab" data-value="map">${icon('map')}지도 보기</button></div>${stepStrip()}`;}
@@ -846,8 +847,8 @@
     return sessionHeading('그림 속 이야기를 따라가자','한 컷씩 크게 보고, 말풍선을 눌러 영어 대사를 들어요.')+`<div class="comic-intro"><div class="comic-intro-text"><h2>${esc(titleText)}</h2><p>${esc(storyText)}</p></div><div class="comic-cuts-nav" role="tablist" aria-label="만화 컷 선택">${c.panels.map((_,i)=>`<button class="comic-cut-tab ${i===comicCut?'active':''} ${comicRead.has(i)?'read':''}" data-action="comic-cut" data-value="${i}" role="tab" aria-selected="${i===comicCut}">${i+1}컷 ${comicRead.has(i)?'✓':''}</button>`).join('')}</div></div><div class="comic-stage">${c.panels.map((p,i)=>`<figure class="comic-panel ${i===comicCut?'active':''}"><div class="comic-art cut-${i}"><img src="${esc(c.image)}" alt="${esc(p.alt)}"><span class="cut-number">${i+1} / 4컷</span></div><figcaption class="speech-bubble"><div class="bubble-header"><span class="bubble-tag">${i+1}번째 이야기</span><p class="bubble-sub">말풍선을 누르면 원어민 소리가 나와요</p></div><div class="bubble-body"><button class="bubble-speech-btn" data-action="comic-speak" data-value="${i}" aria-label="${i+1}컷 대사 듣기: ${esc(p.en)}"><span class="sound-icon-box">${icon('sound')}</span><span class="speech-en" lang="en-AU">${esc(p.en)}</span></button><div class="speech-ko-box"><p class="speech-ko">${esc(p.ko)}</p></div></div><div class="panel-bottom-bar"><div class="panel-controls"><button data-action="comic-prev" ${comicCut===0?'disabled':''}>← 이전 컷</button><button data-action="comic-next" ${comicCut===3?'disabled':''}>다음 컷 →</button></div><button class="comic-read-btn ${comicRead.has(i)?'done':''}" data-action="comic-read" data-value="${i}">${comicRead.has(i)?'✓ 이 컷을 읽었어요':'이 컷을 읽었어요'}</button></div></figcaption></figure>`).join('')}</div><div class="learning-footer"><span class="note">${comicRead.size} / 4컷 읽었어요</span><button class="primary" data-action="finish-comic" ${comicRead.size<4?'disabled':''}>만화 미션 완료 · 퀴즈로 ${icon('arrow')}</button></div>`;
   }
   function initQuiz(){quiz={queue:C.shuffle(data().words.map((_,i)=>i)),index:0,choices:[],answered:false,wrong:0};}
-  function renderQuiz(){if(!quiz)initQuiz();if(quiz.index===quiz.queue.length)return sessionHeading('모두 찾았어, 멋진 탐험가!','틀린 단어도 다시 도전해서 끝까지 해냈어요.')+result('단어 12개를 모두 맞혔어요!',`다시 도전한 횟수 ${quiz.wrong}번. 이제 게임에서 써 볼까요?`,'game','놀이 마당으로');const w=data().words[quiz.queue[quiz.index]];quiz.choices=C.choices(w,data().words);quiz.answered=false;return sessionHeading('어떤 단어일까?','뜻을 보고 맞는 영어를 골라요. 틀리면 다시 해 보면 돼요.')+`<div class="quiz-card"><div class="word-count"><span>단어 퀴즈</span><span>${quiz.index+1} / 12</span></div><div class="progress-track"><span style="width:${quiz.index/12*100}%"></span></div><h2 class="question">${esc(w.ko)}</h2><div class="choices">${quiz.choices.map((w,i)=>`<button data-action="quiz-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div><p id="feedback" class="feedback" role="status">차근차근 골라 보세요.</p><button data-action="quiz-hint">${icon('sound')}소리 힌트</button><button id="quiz-next" class="primary" data-action="quiz-next" hidden>다음으로 ${icon('arrow')}</button></div>`;}
-  function result(title,description,next,label){return `<div class="result"><div class="result-mark" aria-hidden="true">✦</div><h2>${title}</h2><p>${description}</p>${C.isCleared(profile,day)?`<p>네 가지 미션 완료! Day ${day}의 탐험 도장이 찍혔어요.</p>`:''}<div class="finish-actions"><button class="primary" data-action="tab" data-value="${next}">${label}</button>${C.isCleared(profile,day)&&day<50?'<button data-action="next-day">다음 날 탐험 →</button>':''}</div></div>`;}
+  function renderQuiz(){if(!quiz)initQuiz();if(quiz.index===quiz.queue.length)return sessionHeading('모두 찾았어, 멋진 탐험가!','틀린 단어도 다시 도전해서 끝까지 해냈어요.')+result('단어 12개를 모두 맞혔어요!',`다시 도전한 횟수 ${quiz.wrong}번. 이제 게임에서 써 볼까요?`,'game','놀이 마당으로');const w=data().words[quiz.queue[quiz.index]];quiz.choices=C.choices(w,data().words);quiz.answered=false;return sessionHeading('어떤 단어일까?','뜻을 보고 맞는 영어를 골라요. 틀리면 다시 해 보면 돼요.')+`<div class="quiz-card"><div class="word-count"><span>단어 퀴즈</span><span>${quiz.index+1} / 12</span></div><div class="progress-track"><span style="width:${quiz.index/12*100}%"></span></div><h2 class="question">${esc(w.ko)}</h2><div class="choices">${quiz.choices.map((w,i)=>`<button data-action="quiz-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div><p id="feedback" class="feedback" role="status">차근차근 골라 보세요.</p><div class="quiz-action-row"><button data-action="quiz-hint">${icon('sound')}소리 힌트</button><button id="quiz-next" class="primary" data-action="quiz-next" hidden><span class="quiz-timer-progress" aria-hidden="true"></span><span>다음으로</span><span class="quiz-timer-pill"><strong id="quiz-timer-num">2</strong>초 후 자동</span>${icon('arrow')}</button></div></div>`;}
+  function result(title,description,next,label,extra=''){return `<div class="result"><div class="result-mark" aria-hidden="true">✦</div><h2>${title}</h2><p>${description}</p>${C.isCleared(profile,day)?`<p>네 가지 미션 완료! Day ${day}의 탐험 도장이 찍혔어요.</p>`:''}<div class="finish-actions"><button class="primary" data-action="tab" data-value="${next}">${label}</button>${extra}${C.isCleared(profile,day)&&day<50?'<button data-action="next-day">다음 날 탐험 →</button>':''}</div></div>`;}
   function characterSvg(id, state = 'idle') {
     const isA = id === 'aiden';
     const hair = isA ? '#4a2e18' : '#704214';
@@ -1064,7 +1065,7 @@
     const hearts=Array.from({length:HEART_MAX},(_,i)=>`<span class="heart ${i<game.hearts?'':'lost'}">${i<game.hearts?'❤️':'🤍'}</span>`).join('');
     const extra=game.mode==='treasure'?`<span class="coin-pill">🪙 <b>${game.coins}</b></span>`
       :game.mode==='delivery'?`<span class="coin-pill express">⚡ 속달 <b>${game.express}</b></span>`
-      :`<span class="coin-pill train">🚃 <b>${game.index}</b>대 완성</span>`;
+      :`<span class="coin-pill train">🚃 <b>${game.index+(game.answered?1:0)}</b>대 완성</span>`;
     return `<span class="heart-row" aria-label="남은 하트 ${game.hearts}개">${hearts}</span>${extra}<span class="combo-pill ${game.streak>=2?'on':''}">${game.streak>=2?comboLabel(game.streak):'콤보를 쌓아 봐요'}</span>`;
   }
   function refreshHud(pop=false){
@@ -1126,7 +1127,7 @@
       content=`<div class="game-prompt"><p>이 뜻이 되도록 말을 연결해요.</p><h2 class="question">${esc(w.exampleKo)}</h2><button data-action="game-listen">${icon('sound')}문장 듣기</button></div><div id="train-track" class="train-track" aria-label="내가 만든 문장"><div class="engine-wrap">${trainEngineSvg(profileId)}</div><span class="train-empty-hint">여기에 기차를 연결해요</span></div><div id="train-bank" class="train-bank">${game.tokens.map((token,i)=>`<button class="train-token" data-action="train-token" data-value="${i}" lang="en-AU">${esc(token.text)}</button>`).join('')}</div><div class="train-actions"><button data-action="train-undo">한 칸 되돌리기</button><button class="primary" data-action="train-check">기차 출발!</button></div>`;
     } else {
       game.choices=C.choices(w,data().words,game.mode==='delivery'?3:4);
-      const prompt=game.mode==='delivery'?`<p>소리를 듣고, 같은 단어의 우편함을 골라요.</p><button class="primary" data-action="game-listen">${icon('sound')}소포 이름 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p>`:`<p>이 뜻의 단어를 골라 길을 열어요.</p><h2 class="question">${esc(w.ko)}</h2>`;
+      const prompt=game.mode==='delivery'?`<p>소리를 듣고 우편함을 골라요. <b>다시 듣기 없이</b> 맞히면 ⚡속달 배달!</p><button class="primary" data-action="game-listen">${icon('sound')}다시 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p>`:`<p>이 뜻의 단어를 골라 길을 열어요. 연속으로 맞히면 금화가 쑥쑥!</p><h2 class="question">${esc(w.ko)}</h2>`;
       const scene=game.mode==='treasure'
         ? `<div class="treasure-river-track" aria-label="보물까지 ${6-game.index}걸음">
             <div class="river-decor">
@@ -1140,13 +1141,18 @@
         : `<div class="delivery-route" aria-label="${game.index}개 배달 완료"><div class="delivery-road-line"></div><span class="delivery-cart" style="left:${game.index/6*82}%">${deliveryVanSvg(profileId)}</span><div class="flying-parcel" hidden>📦</div></div>`;
       content=scene+`<div class="game-prompt">${prompt}</div><div class="${game.mode==='delivery'?'mailboxes':'choices'}">${game.choices.map((w,i)=>`<button data-action="game-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div>`;
     }
-    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
+    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><div id="game-hud" class="game-hud">${gameHud()}</div><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
   }
   function renderRewards(){return `<div class="lead"><div><div class="eyebrow">MY LITTLE ADVENTURE</div><h1>내가 모은 탐험 배지</h1><p>네 가지 미션을 끝내면 하루의 탐험이 완성돼요.</p></div><div class="journey-count">★ <strong>${profile.stars}</strong>개</div></div><div class="badges">${regions.map((r,i)=>{const n=days.slice(i*10,i*10+10).filter(d=>C.isCleared(profile,d.day)).length;return `<article class="badge ${n===10?'unlocked':'locked'}"><div class="badge-symbol" aria-hidden="true">${n===10?'✦':'◇'}</div><h2>${r.name}</h2><p>${n} / 10일 완료</p><p>${n===10?'탐험 배지를 받았어요!':'열 번의 모험이 기다려요'}</p></article>`;}).join('')}</div><div class="learning-footer"><p class="note">미션당 별 1개, 하루 완주 보너스 별 3개.<br>Aiden과 Luca의 기록은 따로 저장돼요.</p><button class="primary" data-action="tab" data-value="map">탐험 이어 하기</button></div>`;}
   function render(){const restoreFocus=$('main').contains(document.activeElement);nav();updateHeader();$('main').innerHTML=({map:renderMap,cards:renderCards,comic:renderComic,quiz:renderQuiz,game:renderGame,rewards:renderRewards}[tab])();if(tab==='map')fitMap();if(restoreFocus)$('main').focus({preventScroll:true});}
   function feedback(message,error=false){const el=$('feedback');if(el){el.textContent=message;el.classList.toggle('error',error);}}
   function gameSuccess(){
     game.answered=true;
+    game.streak++;
+    if(game.streak>game.bestStreak)game.bestStreak=game.streak;
+    if(game.mode==='treasure')game.coins+=3+Math.max(0,game.streak-1)*2;
+    const express=game.mode==='delivery'&&game.helps===0;
+    if(express)game.express++;
     if(game.index+1===game.queue.length) mark('game');
     if(game.mode==='train'){
       chime('train-whistle');
@@ -1155,7 +1161,7 @@
       $('train-track').classList.add('departing');
     } else if(game.mode==='delivery'){
       chime('delivery-horn');
-      feedback('빵빵! 소포를 우편함에 배달했어요!');
+      feedback(express?'⚡ 속달 배달 성공! 한 번에 알아들었어요!':'빵빵! 소포를 우편함에 배달했어요!');
       burstConfetti(window.innerWidth*0.5, window.innerHeight*0.4, 35);
       document.querySelector('.delivery-cart').style.left=`${(game.index+1)/6*82}%`;
       const btn=document.querySelector('.mailboxes button.correct');
@@ -1197,8 +1203,26 @@
       feedback('맞았어요! 다음 목적지로 가요.');
     }
     document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"]').forEach(b=>b.disabled=true);
-    $('game-next').hidden=false;
-    $('game-next').focus({preventScroll:true});
+    if(game.streak>=2){
+      const streak=game.streak, label=comboLabel(streak);
+      setTimeout(()=>chime('combo',streak-2),220);
+      setTimeout(()=>{const el=$('feedback');if(el&&game?.answered)el.textContent=`${el.textContent} ${label}`;},260);
+    }
+    refreshHud(game.streak>=2);
+    const fork=game.mode==='treasure'&&FORK_STEPS.includes(game.index);
+    if(fork){game.fork={a:5+Math.floor(Math.random()*10),b:5+Math.floor(Math.random()*10)};showFork();}
+    $('game-next').hidden=fork;
+    if(!fork){
+      $('game-next').focus({preventScroll:true});
+      scheduleAdvance(game.mode==='train'?2000:1500);
+    }
+  }
+  function showFork(){
+    const stage=document.querySelector('.game-stage');if(!stage)return;
+    const box=document.createElement('div');
+    box.className='fork-choice';
+    box.innerHTML=`<p>보물 갈림길! 상자 하나를 골라 봐요 🎁</p><div class="fork-row"><button data-action="fork" data-value="a">${treasureChestSvg(false)}</button><button data-action="fork" data-value="b">${treasureChestSvg(false)}</button></div>`;
+    stage.appendChild(box);
   }
   function updateTrain(){
     const chosen=game.selected.map(i=>game.tokens[i]);
@@ -1247,17 +1271,43 @@
     if(a==='comic-read'){comicRead.add(n);chime('ding');if(comicCut<3)comicCut=n+1;render();return;}
     if(a==='finish-comic'&&comicRead.size===4){mark('comic');return navigate('quiz');}
     if(a==='quiz-hint'&&quiz)return speak(data().words[quiz.queue[quiz.index]].en);
-    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);if(quiz.index+1===12)mark('quiz');$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});clearTimeout(quizAutoTimer);quizAutoTimer=setTimeout(()=>{if(tab==='quiz'&&quiz?.answered)advanceQuiz();},1800);}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
+    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);if(quiz.index+1===12)mark('quiz');$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});clearTimeout(quizAutoTimer);clearInterval(quizCountdownInterval);let secLeft=2;const timerNum=$('quiz-timer-num');if(timerNum)timerNum.textContent='2';const prog=document.querySelector('.quiz-timer-progress');if(prog){prog.style.animation='none';void prog.offsetWidth;prog.style.animation='quizTimerShrink 2s linear forwards';}quizCountdownInterval=setInterval(()=>{secLeft--;const el=$('quiz-timer-num');if(el)el.textContent=String(Math.max(1,secLeft));if(secLeft<=0)clearInterval(quizCountdownInterval);},1000);quizAutoTimer=setTimeout(()=>{clearInterval(quizCountdownInterval);if(tab==='quiz'&&quiz?.answered)advanceQuiz();},2000);}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
     if(a==='quiz-next'&&quiz?.answered){advanceQuiz();return;}
     if(a==='start-game')return startGame(v);
-    if(a==='game-menu'){cancelSpeech();game=null;render();return;}
-    if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];return speak(game.mode==='train'?w.example:w.en);}
-    if(a==='game-meaning'&&game){$('meaning-hint').hidden=false;return;}
-    if(a==='game-answer'&&game&&!game.answered){const w=data().words[game.queue[game.index]];if(game.choices[n].en===w.en){button.classList.add('correct');gameSuccess();}else{game.wrong++;button.disabled=true;button.classList.add('wrong');feedback('아직 그 단어는 아니에요. 한 번 더 도전!',true);}return;}
-    if(a==='train-token'&&game?.mode==='train'&&!game.answered&&!game.selected.includes(n)){game.selected.push(n);chime('snap');updateTrain();return;}
+    if(a==='game-menu'){clearAutoAdvance();cancelSpeech();game=null;render();return;}
+    if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];if(game.mode==='delivery'&&!game.answered)game.helps++;return speak(game.mode==='train'?w.example:w.en);}
+    if(a==='game-meaning'&&game){if(!game.answered)game.helps++;$('meaning-hint').hidden=false;return;}
+    if(a==='fork'&&game?.fork){
+      const gain=game.fork[v]||0;game.coins+=gain;game.fork=null;
+      chime('coin');
+      button.innerHTML=treasureChestSvg(true);
+      button.classList.add('fork-open');
+      document.querySelectorAll('[data-action="fork"]').forEach(b=>b.disabled=true);
+      const rect=button.getBoundingClientRect();
+      burstConfetti(rect.left+rect.width/2,rect.top+rect.height/2,30,['#ffd700','#ffe082','#fff59d']);
+      const caption=document.querySelector('.fork-choice p');
+      if(caption)caption.textContent=`🪙 금화 ${gain}개를 찾았어요!`;
+      refreshHud();
+      setTimeout(()=>{document.querySelector('.fork-choice')?.remove();if(game?.answered)$('game-next').hidden=false;},1300);
+      scheduleAdvance(2200);
+      return;
+    }
+    if(a==='game-answer'&&game&&!game.answered){const w=data().words[game.queue[game.index]];if(game.choices[n].en===w.en){button.classList.add('correct');gameSuccess();}else{button.classList.add('wrong');setTimeout(()=>button.classList.remove('wrong'),520);loseHeart(game.mode==='delivery'?'그 우편함이 아니에요. 소리를 한 번 더 듣고 골라 봐요!':'아직 그 단어는 아니에요. 한 번 더 도전!');}return;}
+    if(a==='train-token'&&game?.mode==='train'&&!game.answered&&!game.selected.includes(n)){game.selected.push(n);chime('snap',game.selected.length-1);updateTrain();return;}
     if(a==='train-undo'&&game?.mode==='train'&&!game.answered){game.selected.pop();chime('ding');updateTrain();return;}
-    if(a==='train-check'&&game?.mode==='train'&&!game.answered){const sentence=game.selected.map(i=>game.tokens[i].text).join(' '),target=data().words[game.queue[game.index]].example.trim().replace(/\s+/g,' ');if(sentence===target)gameSuccess();else{game.wrong++;feedback('아직 문장이 완성되지 않았어요. 문장을 듣고, 한 칸씩 다시 연결해 보세요.',true);}return;}
-    if(a==='game-next'&&game?.answered){game.index++;if(game.index===game.queue.length)mark('game');render();if(game.mode==='delivery'&&game.index<game.queue.length)speak(data().words[game.queue[game.index]].en);return;}
+    if(a==='train-check'&&game?.mode==='train'&&!game.answered){
+      const sentence=game.selected.map(i=>game.tokens[i].text).join(' '),target=data().words[game.queue[game.index]].example.trim().replace(/\s+/g,' ');
+      if(sentence===target)gameSuccess();
+      else{
+        loseHeart('덜컹! 마지막 칸이 떨어졌어요. 문장을 듣고 다시 연결해 봐요.');
+        const wagons=document.querySelectorAll('.train-wagon'),last=wagons[wagons.length-1];
+        game.selected.pop();
+        if(last){last.classList.add('wagon-drop');setTimeout(()=>{if(game?.mode==='train'&&!game.answered)updateTrain();},380);}
+        else updateTrain();
+      }
+      return;
+    }
+    if(a==='game-next'&&game?.answered){advanceGame();return;}
   });
   $('ko-speech').addEventListener('change',e=>{koreanSpeech=e.target.checked;});
   $('speech-rate').addEventListener('change',e=>{rate=Number(e.target.value);});

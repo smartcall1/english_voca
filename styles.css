@@ -487,6 +487,7 @@ dialog-title{display:flex;align-items:center;justify-content:space-between;gap:1
 .destination.reached .destination-art{transform:scale(1.2) rotate(-8deg)}
 .resolved .destination:not(.reached){opacity:.55}
 .station-passengers{text-align:right;font-size:22px;color:#355d70;margin:8px 0}
+
 button.train-wagon{border:0;padding:0;background:transparent;box-shadow:none;min-height:0;cursor:pointer}
 .train-track.repairing{outline:3px dashed #dfad43;outline-offset:2px}
 .game-stage .feedback{margin:8px 0;min-height:30px;font-size:22px}
@@ -500,11 +501,11 @@ main:has(.game-stage) .session-heading{margin-bottom:8px}
 .train-stage .train-track{min-height:76px;padding:5px 14px;gap:8px}
 .train-stage .train-bank{margin:6px auto;gap:6px}
 .train-stage .game-prompt p{margin:2px 0}
-.adventure-board{padding:8px 16px}
-.adventure-board .world-actor{height:54px}
-.adventure-board .world-actor svg{max-height:52px}
-.adventure-board .game-prompt{margin:4px auto 8px;padding:3px 12px}
-.adventure-board .destination{min-height:118px;padding:3px 6px}
+.adventure-board.village{padding:8px 16px}
+.adventure-board.village .world-actor{height:54px}
+.adventure-board.village .world-actor svg{max-height:52px}
+.adventure-board.village .game-prompt{margin:4px auto 8px;padding:3px 12px}
+.adventure-board.village .destination{min-height:118px;padding:3px 6px}
 .destination-art{height:64px;width:100%;display:block}
 .destination-art svg{height:64px;width:100%}
 .world-destinations.mailboxes button:before{display:none}
@@ -512,3 +513,21 @@ main:has(.game-stage) .session-heading{margin-bottom:8px}
 .reached .world-door{transform:scaleX(.15);opacity:.4}
 .game-stage .feedback:empty{min-height:0;margin:0}
 .game-stage .train-actions:has(#game-next[hidden]){display:none}
+
+/* 보물길 탐험: 큼직한 제시어 및 화면을 꽉 채우는 어드벤처 보드 구성 */
+.game-stage.treasure-stage{padding:10px 20px 8px}
+.treasure-stage .adventure-board{padding:12px 18px;border-radius:24px}
+.treasure-stage .adventure-caption{font-size:24px;font-weight:800}
+.treasure-stage .journey-meter{height:12px;margin:4px 0 8px}
+.treasure-stage .world-actor{height:60px}
+.treasure-stage .world-actor svg{max-height:56px}
+.treasure-stage .world-actor>span{font-size:21px;padding:4px 16px;border-radius:18px}
+.treasure-stage .game-prompt{margin:4px auto 8px;padding:6px 24px;border-radius:20px;max-width:1080px;background:#ffffff;border:2.5px solid #d4e2cb;box-shadow:0 4px 0 #cad8c7}
+.treasure-stage .question{font-size:50px;font-weight:900;letter-spacing:-.02em;margin:2px 0;color:#173e34}
+.treasure-stage .world-destinations.trail-options{gap:16px;margin-top:2px}
+.treasure-stage .world-destinations.trail-options .destination{min-height:148px;padding:8px 12px;border-radius:22px;border-width:3px}
+.treasure-stage .trail-options .destination-art{height:72px;width:100%;display:block}
+.treasure-stage .trail-options .destination-art svg{height:72px;width:100%}
+.treasure-stage .trail-options .destination strong{font-size:32px;font-weight:850}
+.treasure-stage .feedback{margin:4px 0;min-height:28px;font-size:22px}
+.treasure-stage .train-actions{margin:4px 0}

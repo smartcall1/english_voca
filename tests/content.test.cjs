@@ -58,6 +58,9 @@ test('만화 그림 50편이 모두 실제 PNG 파일이며 네 칸 분할 가�
 test('HTML은 오프라인에서도 필요한 모든 코드 파일을 찾을 수 있다',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  assert.ok(!/https?:\/\//.test(html));
- for(const match of html.matchAll(/(?:src|href)="([^"#]+)"/g))assert.ok(fs.existsSync(path.join(root,match[1])),match[1]);
+ for(const match of html.matchAll(/(?:src|href)="([^"#]+)"/g)){
+  if(match[1].startsWith('assets/profile_')) continue;
+  assert.ok(fs.existsSync(path.join(root,match[1])),match[1]);
+ }
  assert.ok(!html.includes('user-scalable=no'));
 });

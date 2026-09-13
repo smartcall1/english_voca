@@ -16,3 +16,14 @@ backup-original-*/
 scratch/panels/
 .DS_Store
 Thumbs.db
+[Dd]esktop.ini
+*.tmp
+
+# 개인 프로필 사진 및 로컬 생성 스크립트 (로컬 전용 보존, Git 커밋 차단)
+assets/profile_*.png
+assets/profile_*.jpg
+assets/profile_*.jpeg
+*.jpg
+*.jpeg
+*.heic
+tests/generate-profile-avatars.cjs

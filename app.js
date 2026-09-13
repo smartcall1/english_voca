@@ -34,12 +34,65 @@
   let storageOK = true;
   const read = key => { try { return localStorage.getItem(key); } catch { storageOK = false; return null; } };
   const write = (key, value) => { try { localStorage.setItem(key, value); } catch { storageOK = false; showStorageNotice(); } };
+
+  const IDB_NAME = 'english_island_db', IDB_STORE = 'profiles';
+  function idbPut(key, val) {
+    if (!('indexedDB' in window)) return;
+    try {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+      };
+      req.onsuccess = () => {
+        try {
+          const tx = req.result.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(val, key);
+        } catch {}
+      };
+    } catch {}
+  }
+
+  const DAY1_CLEARED_PROFILE = () => ({
+    version: 2,
+    stars: 7,
+    currentDay: 1,
+    days: {
+      "1": {
+        cards: true,
+        comic: true,
+        quiz: true,
+        game: true,
+        rewarded: true,
+        seen: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      }
+    }
+  });
+
   const activeProfilePref = read('english_island_active_v2');
   let profileId = (activeProfilePref === 'luca' || activeProfilePref === 'seoha') ? 'luca' : 'aiden';
   const profiles = {
     aiden: C.readProfile(read('english_island_v2_aiden') || read('english_island_v2_suho')),
     luca: C.readProfile(read('english_island_v2_luca') || read('english_island_v2_seoha'))
   };
+
+  // Day 1 완료(별 7개) 복원 및 초기 시딩 (사용자가 설정에서 초기화하기 전까지 영구 보존)
+  const restoreFlag = read('english_island_v2_day1_restored_v1');
+  if (!restoreFlag) {
+    if (profiles.aiden.stars === 0 && Object.keys(profiles.aiden.days).length === 0) {
+      profiles.aiden = DAY1_CLEARED_PROFILE();
+      write('english_island_v2_aiden', JSON.stringify(profiles.aiden));
+      idbPut('english_island_v2_aiden', JSON.stringify(profiles.aiden));
+    }
+    if (profiles.luca.stars === 0 && Object.keys(profiles.luca.days).length === 0) {
+      profiles.luca = DAY1_CLEARED_PROFILE();
+      write('english_island_v2_luca', JSON.stringify(profiles.luca));
+      idbPut('english_island_v2_luca', JSON.stringify(profiles.luca));
+    }
+    write('english_island_v2_day1_restored_v1', 'true');
+    idbPut('english_island_v2_day1_restored_v1', 'true');
+  }
+
   let profile = profiles[profileId], day = profile.currentDay, region = Math.floor((day - 1) / 10), tab = 'map';
   let cardIndex = 0, exampleRevealed = new Set(), comicRead = new Set(), comicCut = 0, quiz = null, game = null, toastTimer, audioContext;
   let koreanSpeech = true, rate = .9;
@@ -52,8 +105,10 @@
     const id = pendingReset;
     if (!Object.hasOwn(profiles, id)) return;
     const fresh = C.readProfile(null);
+    const serialized = JSON.stringify(fresh);
     try {
-      localStorage.setItem(`english_island_v2_${id}`, JSON.stringify(fresh));
+      localStorage.setItem(`english_island_v2_${id}`, serialized);
+      idbPut(`english_island_v2_${id}`, serialized);
     } catch {
       $('reset-status').textContent = '기록을 저장할 수 없어 초기화하지 않았어요. 기존 진행상황은 그대로예요.';
       dismissReset();
@@ -76,7 +131,13 @@
   const record = () => profile.days[day] ||= {seen:[]};
   const completedCount = () => days.filter(d => C.isCleared(profile,d.day)).length;
   function showStorageNotice() { $('notice').hidden=false; $('notice').textContent='지금은 기록을 저장할 수 없어요. 학습은 계속할 수 있지만, 창을 닫으면 이번 기록이 사라질 수 있어요.'; }
-  function save() { profile.currentDay=day; write(`english_island_v2_${profileId}`,JSON.stringify(profile)); updateHeader(); }
+  function save() {
+    profile.currentDay = day;
+    const serialized = JSON.stringify(profile);
+    write(`english_island_v2_${profileId}`, serialized);
+    idbPut(`english_island_v2_${profileId}`, serialized);
+    updateHeader();
+  }
   function updateHeader() {
     $('stars').textContent=profile.stars;
     for (const id of ['aiden','luca']) $(`profile-${id}`).setAttribute('aria-pressed',String(id===profileId));
@@ -994,6 +1055,7 @@
   function feedback(message,error=false){const el=$('feedback');if(el){el.textContent=message;el.classList.toggle('error',error);}}
   function gameSuccess(){
     game.answered=true;
+    if(game.index+1===game.queue.length) mark('game');
     if(game.mode==='train'){
       chime('train-whistle');
       feedback('칙칙폭폭! 문장 기차 출발!');
@@ -1093,7 +1155,7 @@
     if(a==='comic-read'){comicRead.add(n);chime('ding');if(comicCut<3)comicCut=n+1;render();return;}
     if(a==='finish-comic'&&comicRead.size===4){mark('comic');return navigate('quiz');}
     if(a==='quiz-hint'&&quiz)return speak(data().words[quiz.queue[quiz.index]].en);
-    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
+    if(a==='quiz-answer'&&quiz&&!quiz.answered){const w=data().words[quiz.queue[quiz.index]];if(quiz.choices[n].en===w.en){quiz.answered=true;button.classList.add('correct');chime();feedback(`맞았어요! ${w.en} · ${w.ko}`);document.querySelectorAll('[data-action="quiz-answer"]').forEach(b=>b.disabled=true);if(quiz.index+1===12)mark('quiz');$('quiz-next').hidden=false;$('quiz-next').focus({preventScroll:true});}else{quiz.wrong++;button.classList.add('wrong');button.disabled=true;feedback('다시 골라 볼까요? 소리 힌트도 들을 수 있어요.',true);}return;}
     if(a==='quiz-next'&&quiz?.answered){quiz.index++;if(quiz.index===12)mark('quiz');render();return;}
     if(a==='start-game')return startGame(v);
     if(a==='game-menu'){cancelSpeech();game=null;render();return;}

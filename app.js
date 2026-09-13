@@ -233,6 +233,36 @@
         g.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
         o.connect(g); g.connect(audioContext.destination);
         o.start(now); o.stop(now + 0.24);
+      } else if (type === 'hop') {
+        const o = audioContext.createOscillator(), g = audioContext.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(320, now);
+        o.frequency.exponentialRampToValueAtTime(740, now + 0.16);
+        g.gain.setValueAtTime(0.06, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        o.connect(g); g.connect(audioContext.destination);
+        o.start(now); o.stop(now + 0.18);
+      } else if (type === 'train-whistle') {
+        [587.33, 739.99, 880].forEach(f => {
+          const o = audioContext.createOscillator(), g = audioContext.createGain();
+          o.type = 'sawtooth'; o.frequency.setValueAtTime(f, now);
+          g.gain.setValueAtTime(0.025, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          o.connect(g); g.connect(audioContext.destination);
+          o.start(now); o.stop(now + 0.46);
+        });
+      } else if (type === 'delivery-horn') {
+        [440, 554.37].forEach(f => {
+          const o = audioContext.createOscillator(), g = audioContext.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(f, now);
+          g.gain.setValueAtTime(0.045, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          o.connect(g); g.connect(audioContext.destination);
+          o.start(now); o.stop(now + 0.3);
+        });
+      } else if (type === 'snap') {
+        const o = audioContext.createOscillator(), g = audioContext.createGain();
+        o.type = 'triangle'; o.frequency.setValueAtTime(880, now);
+        o.frequency.exponentialRampToValueAtTime(220, now + 0.08);
+        g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        o.connect(g); g.connect(audioContext.destination);
+        o.start(now); o.stop(now + 0.1);
       } else {
         [523.25, 659.25, 783.99].forEach((f, idx) => {
           const o = audioContext.createOscillator(), g = audioContext.createGain(), start = now + idx * 0.09;
@@ -647,8 +677,165 @@
   function initQuiz(){quiz={queue:C.shuffle(data().words.map((_,i)=>i)),index:0,choices:[],answered:false,wrong:0};}
   function renderQuiz(){if(!quiz)initQuiz();if(quiz.index===quiz.queue.length)return sessionHeading('모두 찾았어, 멋진 탐험가!','틀린 단어도 다시 도전해서 끝까지 해냈어요.')+result('단어 12개를 모두 맞혔어요!',`다시 도전한 횟수 ${quiz.wrong}번. 이제 게임에서 써 볼까요?`,'game','놀이 마당으로');const w=data().words[quiz.queue[quiz.index]];quiz.choices=C.choices(w,data().words);quiz.answered=false;return sessionHeading('어떤 단어일까?','뜻을 보고 맞는 영어를 골라요. 틀리면 다시 해 보면 돼요.')+`<div class="quiz-card"><div class="word-count"><span>단어 퀴즈</span><span>${quiz.index+1} / 12</span></div><div class="progress-track"><span style="width:${quiz.index/12*100}%"></span></div><h2 class="question">${esc(w.ko)}</h2><div class="choices">${quiz.choices.map((w,i)=>`<button data-action="quiz-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div><p id="feedback" class="feedback" role="status">차근차근 골라 보세요.</p><button data-action="quiz-hint">${icon('sound')}소리 힌트</button><button id="quiz-next" class="primary" data-action="quiz-next" hidden>다음으로 ${icon('arrow')}</button></div>`;}
   function result(title,description,next,label){return `<div class="result"><div class="result-mark" aria-hidden="true">✦</div><h2>${title}</h2><p>${description}</p>${C.isCleared(profile,day)?`<p>네 가지 미션 완료! Day ${day}의 탐험 도장이 찍혔어요.</p>`:''}<div class="finish-actions"><button class="primary" data-action="tab" data-value="${next}">${label}</button>${C.isCleared(profile,day)&&day<50?'<button data-action="next-day">다음 날 탐험 →</button>':''}</div></div>`;}
-  function renderGameMenu(){return sessionHeading('오늘은 어떤 놀이를 할까?','원하는 게임 하나를 끝내면 오늘의 게임 미션 완료!')+`<div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 섬 끝의 보물상자를 찾아요.','6개의 징검다리'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개'],['delivery','van','듣고 배달하기','영어 소리를 듣고, 맞는 우편함에 소포를 배달해요.','6번의 배달']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}"><span class="game-preview">${icon(ico)}</span><span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n} · 시간제한 없이</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">어떤 놀이든 여러 번 할 수 있어요. 별은 미션마다 한 번만 받아요.</p>`;}
+  function characterSvg(id, state = 'idle') {
+    const isA = id === 'aiden';
+    const hair = isA ? '#3e2723' : '#6d4c41';
+    const shirt = isA ? '#197564' : '#e65100';
+    const cap = isA ? '#2e7d32' : '#0277bd';
+    const badge = isA ? '#ffd54f' : '#81c784';
+    return `<svg class="game-char ${state} char-${id}" viewBox="0 0 56 68" width="48" height="58" aria-hidden="true">
+      <ellipse cx="28" cy="64" rx="14" ry="3.5" fill="#00000028" class="char-shadow"/>
+      <g class="char-main">
+        <path d="M21 52v8m14-8v8" stroke="#4e342e" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="19" cy="61" rx="4" ry="2.5" fill="#2e1c14"/>
+        <ellipse cx="37" cy="61" rx="4" ry="2.5" fill="#2e1c14"/>
+        <rect x="18" y="32" width="20" height="21" rx="6" fill="${shirt}"/>
+        <rect x="22" y="33" width="3" height="19" rx="1.5" fill="#ffffff44"/>
+        <rect x="31" y="33" width="3" height="19" rx="1.5" fill="#ffffff44"/>
+        <circle cx="28" cy="42" r="3" fill="${badge}"/>
+        <path class="char-arm-l" d="M18 36c-4 3-7 8-5 13" stroke="${shirt}" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path class="char-arm-r" d="M38 36c4 3 7 8 5 13" stroke="${shirt}" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <circle cx="13" cy="50" r="2.5" fill="#ffccbc"/>
+        <circle cx="43" cy="50" r="2.5" fill="#ffccbc"/>
+        <circle cx="28" cy="21" r="14" fill="#ffd8c0"/>
+        <circle cx="20" cy="24" r="3" fill="#ff8a80" opacity=".6"/>
+        <circle cx="36" cy="24" r="3" fill="#ff8a80" opacity=".6"/>
+        <circle cx="23" cy="20" r="2.2" fill="#263238"/>
+        <circle cx="33" cy="20" r="2.2" fill="#263238"/>
+        <circle cx="22" cy="19" r="0.8" fill="#fff"/>
+        <circle cx="32" cy="19" r="0.8" fill="#fff"/>
+        <path d="M25 25q3 3 6 0" stroke="#bf360c" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M15 18c-1-8 6-13 13-13s14 5 13 13c-2-4-5-6-10-6-4 0-7 2-10 4-2-2-4-4-6-8z" fill="${hair}"/>
+        <path d="M15 13c2-7 10-9 18-7 5 1 8 5 8 8z" fill="${cap}"/>
+        <path d="M13 14q15-4 30 0" stroke="${cap}" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <circle cx="27" cy="8" r="2.5" fill="${badge}"/>
+      </g>
+    </svg>`;
+  }
+
+  function treasureChestSvg(isOpen = false) {
+    return `<svg class="treasure-chest-svg ${isOpen ? 'open' : ''}" viewBox="0 0 54 48" width="52" height="46" aria-hidden="true">
+      <ellipse cx="27" cy="45" rx="20" ry="3" fill="#00000028"/>
+      <path d="M6 22h42v20a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4Z" fill="#8d5b2d" stroke="#503014" stroke-width="2.5"/>
+      <rect x="13" y="22" width="5" height="24" fill="#c99738"/>
+      <rect x="36" y="22" width="5" height="24" fill="#c99738"/>
+      ${isOpen ? `
+        <g class="gold-burst">
+          <circle cx="20" cy="18" r="4" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+          <circle cx="27" cy="15" r="5" fill="#ffecb3" stroke="#b8860b" stroke-width="1"/>
+          <circle cx="34" cy="18" r="4" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+          <polygon points="27,9 30,15 24,15" fill="#e91e63"/>
+          <polygon points="18,12 21,16 15,16" fill="#00e676"/>
+          <polygon points="36,11 39,15 33,15" fill="#00e5ff"/>
+          <path d="M27 5l2-4 2 4 4 2-4 2-2 4-2-4-4-2z" fill="#fff" class="sparkle s1"/>
+          <path d="M12 9l1.5-3 1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5z" fill="#fff" class="sparkle s2"/>
+          <path d="M40 7l1.5-3 1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5z" fill="#fff" class="sparkle s3"/>
+        </g>
+        <path d="M4 22L12 6h30l8 16Z" fill="#a06836" stroke="#503014" stroke-width="2.5" class="chest-lid open"/>
+      ` : `
+        <path d="M4 22C4 13 14 8 27 8s23 5 23 14Z" fill="#a06836" stroke="#503014" stroke-width="2.5" class="chest-lid"/>
+        <rect x="23" y="19" width="8" height="10" rx="2" fill="#ffd54f" stroke="#b27f00" stroke-width="1.5"/>
+        <circle cx="27" cy="23" r="1.5" fill="#3e2723"/>
+      `}
+    </svg>`;
+  }
+
+  function trainEngineSvg(id) {
+    const isA = id === 'aiden';
+    const driverCap = isA ? '#197564' : '#d97706';
+    return `<svg class="steam-engine" viewBox="0 0 95 64" width="95" height="64" aria-hidden="true">
+      <g class="steam-group">
+        <circle cx="22" cy="7" r="4.5" fill="#ffffffcc" class="puff puff-1"/>
+        <circle cx="16" cy="-1" r="6" fill="#ffffff99" class="puff puff-2"/>
+        <circle cx="9" cy="-9" r="7.5" fill="#ffffff66" class="puff puff-3"/>
+      </g>
+      <path d="M2 56L14 44v12Z" fill="#90a4ae" stroke="#37474f" stroke-width="2"/>
+      <rect x="0" y="28" width="6" height="10" rx="2" fill="#ffd54f" stroke="#e65100" stroke-width="1.5"/>
+      <rect x="5" y="24" width="55" height="26" rx="4" fill="#3b6ea5" stroke="#234267" stroke-width="2.5"/>
+      <path d="M20 24v26M38 24v26" stroke="#5d8ebf" stroke-width="2.5"/>
+      <rect x="18" y="10" width="10" height="15" fill="#263238" rx="1"/>
+      <ellipse cx="23" cy="10" rx="7" ry="2.5" fill="#f57c00"/>
+      <ellipse cx="45" cy="23" rx="6" ry="4" fill="#f57c00"/>
+      <rect x="56" y="12" width="36" height="38" rx="4" fill="#2d527c" stroke="#1d3753" stroke-width="2.5"/>
+      <path d="M53 12h42l-3-4H56Z" fill="#d32f2f"/>
+      <rect x="62" y="16" width="22" height="18" rx="3" fill="#e1f5fe" stroke="#1d3753" stroke-width="2"/>
+      <g transform="translate(64 18) scale(0.42)">
+        <circle cx="18" cy="14" r="10" fill="#ffd8c0"/>
+        <circle cx="16" cy="13" r="1.5" fill="#222"/><circle cx="22" cy="13" r="1.5" fill="#222"/>
+        <path d="M17 18q2 2 4 0" stroke="#a74a38" stroke-width="1.5" fill="none"/>
+        <path d="M9 9c1-5 8-7 14-4 3 2 4 4 4 6z" fill="${driverCap}"/>
+        <g class="conductor-hand">
+          <path d="M25 18q6 -8 8 -2" stroke="#ffd8c0" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="34" cy="16" r="3" fill="#ffb300"/>
+        </g>
+      </g>
+      <rect x="2" y="48" width="91" height="6" rx="2" fill="#263238"/>
+      <g class="wheel-group">
+        <g class="wheel spin" transform="translate(18 52)"><circle r="8.5" fill="#cfd8dc" stroke="#263238" stroke-width="2.5"/><circle r="3" fill="#d32f2f"/></g>
+        <g class="wheel spin" transform="translate(42 52)"><circle r="8.5" fill="#cfd8dc" stroke="#263238" stroke-width="2.5"/><circle r="3" fill="#d32f2f"/></g>
+        <g class="wheel spin" transform="translate(74 50)"><circle r="10.5" fill="#eceff1" stroke="#263238" stroke-width="3"/><circle r="4" fill="#f57c00"/></g>
+        <line x1="18" y1="55" x2="42" y2="55" stroke="#37474f" stroke-width="3" stroke-linecap="round" class="side-rod"/>
+      </g>
+    </svg>`;
+  }
+
+  function deliveryVanSvg(id) {
+    const isA = id === 'aiden';
+    const driverCap = isA ? '#197564' : '#e65100';
+    return `<svg class="delivery-van-svg" viewBox="0 0 96 64" width="96" height="64" aria-hidden="true">
+      <g class="exhaust-group">
+        <circle cx="-6" cy="46" r="3" fill="#b0bec599" class="exhaust ep-1"/>
+        <circle cx="-14" cy="43" r="5" fill="#b0bec566" class="exhaust ep-2"/>
+      </g>
+      <g class="van-chassis">
+        <rect x="4" y="16" width="54" height="34" rx="6" fill="#f39c12" stroke="#b9770e" stroke-width="2.5"/>
+        <line x1="30" y1="16" x2="30" y2="50" stroke="#b9770e" stroke-width="2"/>
+        <g transform="translate(20 28) scale(0.85)">
+          <rect width="18" height="12" rx="2" fill="#fff" stroke="#d35400" stroke-width="1.5"/>
+          <path d="M0 0l9 7 9-7" fill="none" stroke="#d35400" stroke-width="1.5"/>
+        </g>
+        <rect x="8" y="20" width="12" height="9" rx="1.5" fill="#d7ccc8" stroke="#8d6e63" stroke-width="1"/>
+        <path d="M57 26h22l8 12v12H57Z" fill="#e67e22" stroke="#af5d12" stroke-width="2.5"/>
+        <polygon points="62,28 77,28 83,38 62,38" fill="#e1f5fe" stroke="#af5d12" stroke-width="1.8"/>
+        <g transform="translate(64 28) scale(0.38)">
+          <circle cx="16" cy="14" r="10" fill="#ffd8c0"/>
+          <circle cx="19" cy="14" r="1.8" fill="#222"/>
+          <circle cx="14" cy="17" r="2.5" fill="#ff8a80" opacity="0.6"/>
+          <path d="M8 8c1-5 8-7 14-4 3 2 4 4 4 6z" fill="${driverCap}"/>
+          <circle cx="28" cy="22" r="5" fill="none" stroke="#333" stroke-width="3"/>
+          <circle cx="25" cy="20" r="2" fill="#ffd8c0"/>
+        </g>
+        <path d="M86 42h4v7h-4z" fill="#fff9c4" stroke="#fbc02d" stroke-width="1.5"/>
+        <rect x="84" y="48" width="9" height="5" rx="2" fill="#78909c"/>
+        <rect x="0" y="48" width="6" height="5" rx="1.5" fill="#78909c"/>
+      </g>
+      <g class="van-wheel-group">
+        <g class="wheel spin" transform="translate(24 50)"><circle r="8.5" fill="#37474f" stroke="#212121" stroke-width="2.5"/><circle r="4" fill="#eceff1"/><circle r="1.5" fill="#d32f2f"/></g>
+        <g class="wheel spin" transform="translate(72 50)"><circle r="8.5" fill="#37474f" stroke="#212121" stroke-width="2.5"/><circle r="4" fill="#eceff1"/><circle r="1.5" fill="#d32f2f"/></g>
+      </g>
+    </svg>`;
+  }
+
+  function renderGameMenu(){
+    const name = profileId === 'aiden' ? 'Aiden' : 'Luca';
+    const previews = {
+      treasure: `<span class="game-preview preview-treasure">${treasureChestSvg(true)}</span>`,
+      train: `<span class="game-preview preview-train">${trainEngineSvg(profileId)}</span>`,
+      delivery: `<span class="game-preview preview-delivery">${deliveryVanSvg(profileId)}</span>`
+    };
+    return sessionHeading('오늘은 어떤 놀이를 할까?','원하는 게임 하나를 끝내면 오늘의 게임 미션 완료!')+`
+      <div class="game-menu-banner">
+        <div class="banner-char">${characterSvg(profileId, 'waving')}</div>
+        <div class="banner-speech">
+          <h2>${name}, 신나는 영어 놀이터에 온 걸 환영해!</h2>
+          <p>단어를 맞혀 보물을 찾고, 기차를 달리고, 소포를 배달해 봐요.</p>
+        </div>
+      </div>
+      <div class="game-menu">${[['treasure','chest','보물길 탐험','단어를 맞혀 길을 열고, 섬 끝의 보물상자를 찾아요.','6개의 징검다리'],['train','train','문장 기차','흩어진 말을 순서대로 연결해서 기차를 출발시켜요.','오늘의 예문 3개'],['delivery','van','듣고 배달하기','영어 소리를 듣고, 맞는 우편함에 소포를 배달해요.','6번의 배달']].map(([id,ico,title,desc,n])=>`<button class="game-option" data-action="start-game" data-value="${id}">${previews[id]}<span class="game-description"><h2>${title}</h2><p>${desc}</p><p class="note">${n} · 시간제한 없이</p><span class="play-label">놀이 시작 →</span></span></button>`).join('')}</div><p class="note">어떤 놀이든 여러 번 할 수 있어요. 별은 미션마다 한 번만 받아요.</p>`;
+  }
+
   function startGame(mode){if(!['treasure','train','delivery'].includes(mode))return;game={mode,queue:C.shuffle(data().words.map((_,i)=>i)).slice(0,mode==='train'?3:6),index:0,answered:false,choices:[],tokens:[],selected:[],wrong:0};render();if(mode==='delivery')speak(data().words[game.queue[0]].en);}
+
   function renderGame(){
     if(!game)return renderGameMenu();
     const titles={treasure:'보물길 탐험',train:'문장 기차',delivery:'듣고 배달하기'};
@@ -657,20 +844,62 @@
     let content='';
     if(game.mode==='train'){
       const tokens=w.example.trim().split(/\s+/);game.tokens=C.shuffle(tokens.map((text,id)=>({text,id})));game.selected=[];
-      content=`<div class="game-prompt"><p>이 뜻이 되도록 말을 연결해요.</p><h2 class="question">${esc(w.exampleKo)}</h2><button data-action="game-listen">${icon('sound')}문장 듣기</button></div><div id="train-track" class="train-track" aria-label="내가 만든 문장"><span class="engine">${icon('train')}</span><span class="note">여기에 기차를 연결해요</span></div><div id="train-bank" class="train-bank">${game.tokens.map((token,i)=>`<button class="train-token" data-action="train-token" data-value="${i}" lang="en-AU">${esc(token.text)}</button>`).join('')}</div><div class="train-actions"><button data-action="train-undo">한 칸 되돌리기</button><button class="primary" data-action="train-check">기차 출발!</button></div>`;
+      content=`<div class="game-prompt"><p>이 뜻이 되도록 말을 연결해요.</p><h2 class="question">${esc(w.exampleKo)}</h2><button data-action="game-listen">${icon('sound')}문장 듣기</button></div><div id="train-track" class="train-track" aria-label="내가 만든 문장"><div class="engine-wrap">${trainEngineSvg(profileId)}</div><span class="train-empty-hint">여기에 기차를 연결해요</span></div><div id="train-bank" class="train-bank">${game.tokens.map((token,i)=>`<button class="train-token" data-action="train-token" data-value="${i}" lang="en-AU">${esc(token.text)}</button>`).join('')}</div><div class="train-actions"><button data-action="train-undo">한 칸 되돌리기</button><button class="primary" data-action="train-check">기차 출발!</button></div>`;
     } else {
       game.choices=C.choices(w,data().words,game.mode==='delivery'?3:4);
       const prompt=game.mode==='delivery'?`<p>소리를 듣고, 같은 단어의 우편함을 골라요.</p><button class="primary" data-action="game-listen">${icon('sound')}소포 이름 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p>`:`<p>이 뜻의 단어를 골라 길을 열어요.</p><h2 class="question">${esc(w.ko)}</h2>`;
-      const scene=game.mode==='treasure'?`<div class="game-path" aria-label="보물까지 ${6-game.index}걸음">${Array.from({length:7},(_,i)=>`<span class="game-stop ${i<game.index?'arrived':''} ${i===game.index?'here':''}">${i===6?icon('chest'):i<game.index?'✓':i===game.index?icon('flag'):i+1}</span>`).join('')}</div>`:`<div class="delivery-route" aria-label="${game.index}개 배달 완료"><span class="delivery-cart" style="left:${game.index/6*82}%">${icon('van')}</span></div>`;
+      const scene=game.mode==='treasure'
+        ? `<div class="game-path" aria-label="보물까지 ${6-game.index}걸음">${Array.from({length:7},(_,i)=>`<span class="game-stop ${i<game.index?'arrived':''} ${i===game.index?'here':''}">${i===6?treasureChestSvg(game.index===6):i<game.index?'✓':i===game.index?`<div class="char-on-stop">${characterSvg(profileId,'standing')}</div><span>${i+1}</span>`:i+1}</span>`).join('')}</div>`
+        : `<div class="delivery-route" aria-label="${game.index}개 배달 완료"><div class="delivery-road-line"></div><span class="delivery-cart" style="left:${game.index/6*82}%">${deliveryVanSvg(profileId)}</span></div>`;
       content=scene+`<div class="game-prompt">${prompt}</div><div class="${game.mode==='delivery'?'mailboxes':'choices'}">${game.choices.map((w,i)=>`<button data-action="game-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div>`;
     }
-    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
+    return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
   }
   function renderRewards(){return `<div class="lead"><div><div class="eyebrow">MY LITTLE ADVENTURE</div><h1>내가 모은 탐험 배지</h1><p>네 가지 미션을 끝내면 하루의 탐험이 완성돼요.</p></div><div class="journey-count">★ <strong>${profile.stars}</strong>개</div></div><div class="badges">${regions.map((r,i)=>{const n=days.slice(i*10,i*10+10).filter(d=>C.isCleared(profile,d.day)).length;return `<article class="badge ${n===10?'unlocked':'locked'}"><div class="badge-symbol" aria-hidden="true">${n===10?'✦':'◇'}</div><h2>${r.name}</h2><p>${n} / 10일 완료</p><p>${n===10?'탐험 배지를 받았어요!':'열 번의 모험이 기다려요'}</p></article>`;}).join('')}</div><div class="learning-footer"><p class="note">미션당 별 1개, 하루 완주 보너스 별 3개.<br>Aiden과 Luca의 기록은 따로 저장돼요.</p><button class="primary" data-action="tab" data-value="map">탐험 이어 하기</button></div>`;}
   function render(){const restoreFocus=$('main').contains(document.activeElement);nav();updateHeader();$('main').innerHTML=({map:renderMap,cards:renderCards,comic:renderComic,quiz:renderQuiz,game:renderGame,rewards:renderRewards}[tab])();if(tab==='map')fitMap();if(restoreFocus)$('main').focus({preventScroll:true});}
   function feedback(message,error=false){const el=$('feedback');if(el){el.textContent=message;el.classList.toggle('error',error);}}
-  function gameSuccess(){game.answered=true;chime();feedback(game.mode==='train'?'칙칙폭폭! 문장 기차 출발!':'맞았어요! 다음 목적지로 가요.');if(game.mode==='train')$('train-track').classList.add('departing');if(game.mode==='delivery')document.querySelector('.delivery-cart').style.left=`${(game.index+1)/6*82}%`;if(game.mode==='treasure'){const stops=document.querySelectorAll('.game-stop');stops[game.index].classList.remove('here');stops[game.index].classList.add('arrived');stops[game.index+1].classList.add('here');}document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"]').forEach(b=>b.disabled=true);$('game-next').hidden=false;$('game-next').focus({preventScroll:true});}
-  function updateTrain(){const chosen=game.selected.map(i=>game.tokens[i]);$('train-track').innerHTML=`<span class="engine">${icon('train')}</span>`+(chosen.length?chosen.map(t=>`<span class="train-token" lang="en-AU">${esc(t.text)}</span>`).join(''):'<span class="note">여기에 기차를 연결해요</span>');document.querySelectorAll('[data-action="train-token"]').forEach(b=>b.disabled=game.selected.includes(Number(b.dataset.value)));}
+  function gameSuccess(){
+    game.answered=true;
+    if(game.mode==='train'){
+      chime('train-whistle');
+      feedback('칙칙폭폭! 문장 기차 출발!');
+      $('train-track').classList.add('departing');
+    } else if(game.mode==='delivery'){
+      chime('delivery-horn');
+      feedback('빵빵! 소포를 우편함에 배달했어요!');
+      document.querySelector('.delivery-cart').style.left=`${(game.index+1)/6*82}%`;
+      const btn=document.querySelector('.mailboxes button.correct');
+      if(btn) btn.classList.add('mailbox-delivered');
+    } else if(game.mode==='treasure'){
+      chime('hop');
+      feedback(game.index+1===6?'만세! 반짝이는 보물상자를 찾았어요!':'폴짝! 맞았어요! 다음 징검다리로 가요.');
+      const stops=document.querySelectorAll('.game-stop');
+      stops[game.index].classList.remove('here');
+      stops[game.index].classList.add('arrived');
+      if(stops[game.index+1]){
+        stops[game.index+1].classList.add('here');
+        stops[game.index+1].classList.add('stone-landing');
+      }
+      if(game.index+1===6){
+        chime('bonus-slam');
+      }
+    } else {
+      chime();
+      feedback('맞았어요! 다음 목적지로 가요.');
+    }
+    document.querySelectorAll('[data-action="game-answer"],[data-action="train-token"],[data-action="train-check"],[data-action="train-undo"]').forEach(b=>b.disabled=true);
+    $('game-next').hidden=false;
+    $('game-next').focus({preventScroll:true});
+  }
+  function updateTrain(){
+    const chosen=game.selected.map(i=>game.tokens[i]);
+    const engine=`<div class="engine-wrap">${trainEngineSvg(profileId)}</div>`;
+    const wagons=chosen.length
+      ? chosen.map(t=>`<div class="train-wagon" lang="en-AU"><span class="wagon-coupler"></span><span class="wagon-box">${esc(t.text)}</span><div class="wagon-wheels"><span class="w-wheel"></span><span class="w-wheel"></span></div></div>`).join('')
+      : '<span class="train-empty-hint">여기에 기차를 연결해요</span>';
+    $('train-track').innerHTML=engine+wagons;
+    document.querySelectorAll('[data-action="train-token"]').forEach(b=>b.disabled=game.selected.includes(Number(b.dataset.value)));
+  }
   document.addEventListener('click',event=>{
     const button=event.target.closest('button[data-action]');if(!button||button.disabled)return;
     const a=button.dataset.action,v=button.dataset.value,n=Number(v);
@@ -716,8 +945,8 @@
     if(a==='game-listen'&&game){const w=data().words[game.queue[game.index]];return speak(game.mode==='train'?w.example:w.en);}
     if(a==='game-meaning'&&game){$('meaning-hint').hidden=false;return;}
     if(a==='game-answer'&&game&&!game.answered){const w=data().words[game.queue[game.index]];if(game.choices[n].en===w.en){button.classList.add('correct');gameSuccess();}else{game.wrong++;button.disabled=true;button.classList.add('wrong');feedback('아직 그 단어는 아니에요. 한 번 더 도전!',true);}return;}
-    if(a==='train-token'&&game?.mode==='train'&&!game.answered&&!game.selected.includes(n)){game.selected.push(n);updateTrain();return;}
-    if(a==='train-undo'&&game?.mode==='train'&&!game.answered){game.selected.pop();updateTrain();return;}
+    if(a==='train-token'&&game?.mode==='train'&&!game.answered&&!game.selected.includes(n)){game.selected.push(n);chime('snap');updateTrain();return;}
+    if(a==='train-undo'&&game?.mode==='train'&&!game.answered){game.selected.pop();chime('ding');updateTrain();return;}
     if(a==='train-check'&&game?.mode==='train'&&!game.answered){const sentence=game.selected.map(i=>game.tokens[i].text).join(' '),target=data().words[game.queue[game.index]].example.trim().replace(/\s+/g,' ');if(sentence===target)gameSuccess();else{game.wrong++;feedback('아직 문장이 완성되지 않았어요. 문장을 듣고, 한 칸씩 다시 연결해 보세요.',true);}return;}
     if(a==='game-next'&&game?.answered){game.index++;if(game.index===game.queue.length)mark('game');render();if(game.mode==='delivery'&&game.index<game.queue.length)speak(data().words[game.queue[game.index]].en);return;}
   });

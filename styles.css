@@ -204,57 +204,104 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .finish-actions{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:18px}
 .finish-actions button{min-height:52px;padding:8px 28px;border-radius:16px;font-size:1.2rem;font-weight:850}
 
-/* 놀이 마당 메뉴 최적화 (세로 볼륨감 대폭 확대, 캡슐형 3D 플레이 버튼) */
-.game-menu{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:6px}
-.game-option{padding:0;overflow:hidden;text-align:left;display:flex;flex-direction:column;border:3px solid #d0ddc8;border-radius:26px;box-shadow:0 8px 0 #c2cfb8;min-height:445px;background:white;transition:transform .12s,box-shadow .12s,background .12s}
+/* 놀이 마당 메뉴 최적화 (배너 + 살아있는 SVG 프리뷰 + 캡슐형 3D 플레이 버튼) */
+.game-menu-banner{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#e9f7ec 0%,#d8edd9 100%);border:2.5px solid #b4dfba;border-radius:20px;padding:8px 20px;margin-bottom:10px;box-shadow:0 4px 0 #c7dfcb}
+.banner-char{width:56px;height:56px;flex-shrink:0}
+.banner-bubble strong{display:block;font-size:1.18rem;font-weight:850;color:#155948;margin-bottom:2px}
+.banner-bubble p{margin:0;font-size:1rem;color:#3a695b;font-weight:700}
+.game-menu{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:4px}
+.game-option{padding:0;overflow:hidden;text-align:left;display:flex;flex-direction:column;border:3px solid #d0ddc8;border-radius:24px;box-shadow:0 7px 0 #c2cfb8;min-height:355px;background:white;transition:transform .14s,box-shadow .14s,background .14s}
 .game-option:hover:not(:disabled){transform:translateY(-4px);box-shadow:0 12px 0 #b3c2a9}
-.game-option:active:not(:disabled){transform:translateY(4px);box-shadow:0 3px 0 #b3c2a9}
-.game-option .game-preview{height:160px;width:100%;display:grid;place-items:center;background:#e5efdb;border-bottom:2px solid #d6e2d0}
+.game-option:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #b3c2a9}
+.game-option .game-preview{height:120px;width:100%;display:grid;place-items:center;background:#e5efdb;border-bottom:2px solid #d6e2d0;overflow:hidden;position:relative}
 .game-option:nth-child(2) .game-preview{background:#e6edf8;border-bottom-color:#d0dceb}
 .game-option:nth-child(3) .game-preview{background:#f9e8d5;border-bottom-color:#edd5bd}
-.game-option .game-preview .icon{width:72px;height:72px;stroke-width:1.4;color:var(--green)}
-.game-option:nth-child(2) .game-preview .icon{color:#3b6ea5}
-.game-option:nth-child(3) .game-preview .icon{color:#b36323}
-.game-option .game-description{padding:20px 24px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
-.game-option h2{font-size:1.48rem;font-weight:850;margin-bottom:6px;color:var(--ink)}
-.game-option p{font-size:1.12rem;color:var(--muted);margin:2px 0 8px;line-height:1.45}
-.game-option .note{font-size:1.05rem;font-weight:750;color:#5a775e;margin-bottom:8px}
-.game-option .play-label{background:var(--green);color:#fff;font-size:1.15rem;font-weight:850;padding:10px 24px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 #0d4e41;margin-top:10px;align-self:flex-start;transition:background .12s,transform .1s}
+.game-option .game-preview svg{max-height:92px;width:auto}
+.game-option .game-description{padding:14px 18px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.game-option h2{font-size:1.36rem;font-weight:850;margin-bottom:3px;color:var(--ink)}
+.game-option p{font-size:1.02rem;color:var(--muted);margin:2px 0 4px;line-height:1.4}
+.game-option .note{font-size:0.96rem;font-weight:750;color:#5a775e;margin-bottom:4px}
+.game-option .play-label{background:var(--green);color:#fff;font-size:1.08rem;font-weight:850;padding:7px 20px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 #0d4e41;margin-top:6px;align-self:flex-start;transition:background .12s,transform .1s}
 .game-option:nth-child(2) .play-label{background:#34689d;box-shadow:0 4px 0 #20466e}
 .game-option:nth-child(3) .play-label{background:#bd6a25;box-shadow:0 4px 0 #85430c}
-.game-menu + p.note{background:#f7fbf2;border:2px solid #d7e6ce;border-radius:16px;padding:12px 24px;font-size:1.05rem;font-weight:750;color:#3e6044;text-align:center;margin-top:14px}
+.game-menu + p.note{background:#f7fbf2;border:2px solid #d7e6ce;border-radius:14px;padding:8px 18px;font-size:0.98rem;font-weight:750;color:#3e6044;text-align:center;margin-top:8px}
 
-/* 게임 진행 화면 최적화 (넓어진 가로폭과 큼직한 터치 영역) */
+/* 게임 진행 화면 (살아있는 캐릭터와 애니메이션 스테이지) */
 .game-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px}
-.game-top h2{font-size:1.4rem;font-weight:850}
-.game-top button{min-height:44px;padding:6px 18px;font-size:1.05rem;border-radius:14px;font-weight:750}
-.game-stage{background:#eaf1e1;border:3px solid #cbdbbf;border-radius:26px;padding:16px 28px;position:relative;overflow:hidden;box-shadow:0 6px 0 #cedecc;min-height:470px;display:flex;flex-direction:column;justify-content:space-between}
-.game-path{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;margin:8px 16px 16px}
-.game-path:before{content:'';position:absolute;left:20px;right:20px;top:50%;border-top:12px dashed #bdd0a7}
-.game-stop{position:relative;border:3.5px solid white;display:grid;place-items:center;width:56px;height:56px;min-height:56px;border-radius:50%;background:#c7d9b8;flex-shrink:0;font-size:22px;font-weight:850;padding:0;box-shadow:0 4px 0 #95b383;touch-action:manipulation}
+.game-top h2{font-size:1.35rem;font-weight:850}
+.game-top button{min-height:42px;padding:5px 16px;font-size:1.02rem;border-radius:14px;font-weight:750}
+.game-stage{background:#eaf1e1;border:3px solid #cbdbbf;border-radius:26px;padding:16px 26px;position:relative;overflow:hidden;box-shadow:0 6px 0 #cedecc;min-height:465px;display:flex;flex-direction:column;justify-content:space-between}
+.game-stage.treasure-stage{background:linear-gradient(180deg,#eef6e6 0%,#dfeece 100%)}
+.game-stage.train-stage{background:linear-gradient(180deg,#eef4f8 0%,#dce8f0 100%);border-color:#b8cbd6;box-shadow:0 6px 0 #a9bdc9}
+.game-stage.delivery-stage{background:linear-gradient(180deg,#fcf4e8 0%,#f5e5cc 100%);border-color:#dfcdb4;box-shadow:0 6px 0 #cfbc9f}
+
+/* 보물길 탐험: 징검다리 스톤 및 뛰는 캐릭터 */
+.game-path{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;margin:24px 16px 12px}
+.game-path:before{content:'';position:absolute;left:24px;right:24px;top:50%;border-top:12px dashed #b5cca0;z-index:1}
+.game-stop{position:relative;border:3.5px solid white;display:grid;place-items:center;width:58px;height:58px;min-height:58px;border-radius:50%;background:#c7d9b8;flex-shrink:0;font-size:22px;font-weight:850;padding:0;box-shadow:0 4px 0 #95b383;touch-action:manipulation;z-index:2}
 .game-stop.arrived{background:var(--green);color:#fff;box-shadow:0 4px 0 #0d5144}
 .game-stop.here{background:linear-gradient(135deg,#ffb259,#f08b35);color:#fff;box-shadow:0 0 0 5px #ffffffd9,0 4px 0 #ba5d16;animation:current-bounce 2s infinite ease-in-out}
-.game-stop .icon{margin:0;width:24px;height:24px}
-.game-prompt{background:#ffffff;border-radius:20px;padding:12px 24px;text-align:center;margin:4px auto 12px;border:2px solid #dde7d4;box-shadow:0 3px 0 #d4e2cb;max-width:1080px;width:100%}
-.game-prompt .question{margin:4px 0;font-size:2rem;font-weight:850}
+.game-stop.chest-stop{width:70px;height:70px;background:none;border:none;box-shadow:none;border-radius:0}
+.char-on-stop,.game-char-on-stone{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:52px;height:52px;pointer-events:none;z-index:10;animation:stone-char-hop 1.6s ease-in-out infinite}
+@keyframes stone-char-hop{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-10px) scale(1.05,0.95)}}
+.game-stop.stone-landing{animation:stone-land .45s cubic-bezier(.17,.89,.32,1.3) both}
+@keyframes stone-land{0%{transform:scale(.5) translateY(-30px)}70%{transform:scale(1.2,0.85) translateY(4px)}100%{transform:scale(1) translateY(0)}}
+
+/* 문제 프롬프트 */
+.game-prompt{background:#ffffff;border-radius:20px;padding:10px 22px;text-align:center;margin:2px auto 10px;border:2px solid #dde7d4;box-shadow:0 3px 0 #d4e2cb;max-width:1080px;width:100%}
+.game-prompt .question{margin:2px 0;font-size:1.95rem;font-weight:850}
 .game-stage .choices{max-width:1080px;width:100%;margin:auto;gap:14px}
 .game-stage .choices button{min-height:76px;font-size:1.52rem;font-weight:850;padding:8px 18px;border-radius:18px;box-shadow:0 5px 0 #beceb8;border:2.5px solid #cedbca;background:#fafdf8}
-.delivery-route{position:relative;height:56px;border-bottom:6px dashed #b5be9d;margin:6px auto 12px;max-width:1080px;width:100%}
-.delivery-cart{position:absolute;left:0;bottom:4px;color:var(--green);transition:left .6s;transform:translateX(-5%)}
-.delivery-cart .icon{width:54px;height:46px}
-.mailboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1080px;width:100%;margin:auto}
-.mailboxes button{background:#fff9ed;border:4px solid #bc864d;border-radius:28px 28px 16px 16px;padding:16px 12px 14px;font-size:1.48rem;min-height:118px;overflow-wrap:anywhere;box-shadow:0 7px 0 #8a5e31;font-weight:850}
-.mailboxes button:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #8a5e31}
-.mailboxes button:before{content:'';display:block;height:8px;background:#8a5e31;border-radius:6px;margin:0 14px 12px}
-.train-track{display:flex;gap:10px;min-height:76px;align-items:center;flex-wrap:wrap;padding:8px 16px;border-bottom:6px double #7c949c;background:#eff6f8;border-radius:18px;max-width:1080px;width:100%;margin:auto}
-.train-track .engine{color:#48719b}
-.train-track .engine .icon{width:46px;height:46px}
-.train-token{font-size:1.24rem;font-weight:850;border:2.5px solid #6688aa;border-radius:14px;background:linear-gradient(180deg,#f3f8ff,#dce9fb);padding:8px 18px;min-height:50px;position:relative;box-shadow:0 4px 0 #85a4c6}
-.train-token:active{transform:translateY(2px);box-shadow:0 1px 0 #85a4c6}
-.train-bank{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px auto;max-width:1080px}
+
+/* 문장 기차: 기관차 및 연결 마차 */
+.train-track{display:flex;gap:12px;min-height:86px;align-items:center;flex-wrap:wrap;padding:10px 20px;border-bottom:8px double #6c8894;background:#eff6f8;border-radius:20px;max-width:1080px;width:100%;margin:auto;box-shadow:inset 0 2px 4px rgba(0,0,0,.05)}
+.train-track .engine-wrap{display:flex;align-items:center;flex-shrink:0}
+.train-track .engine-wrap svg{height:68px;width:auto;filter:drop-shadow(0 4px 4px rgba(0,0,0,.15))}
+.train-empty-hint{font-size:1.15rem;font-weight:750;color:#6b8794;margin-left:14px;padding:6px 14px;border:2px dashed #b3c9d4;border-radius:12px;background:#f8fbfd}
+.train-wagon{display:inline-flex;align-items:center;position:relative;animation:wagon-snap .35s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes wagon-snap{0%{transform:scale(0.6) translateX(-24px);opacity:0}100%{transform:scale(1) translateX(0);opacity:1}}
+.wagon-coupler{width:12px;height:6px;background:#506a77;border-radius:2px;margin-right:2px}
+.wagon-box{font-size:1.24rem;font-weight:850;border:2.5px solid #4a7596;border-radius:14px;background:linear-gradient(180deg,#ffffff 0%,#dbe9f7 100%);padding:8px 18px;min-height:48px;position:relative;box-shadow:0 4px 0 #6d96b8;color:#183d58;display:inline-block}
+.wagon-wheels{position:absolute;bottom:-6px;left:0;right:0;display:flex;justify-content:space-around;pointer-events:none}
+.w-wheel{width:12px;height:12px;background:#354d5b;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 2px rgba(0,0,0,.3)}
+.train-bank{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px auto 4px;max-width:1080px}
 .train-bank button{min-height:48px;padding:7px 20px;font-size:1.2rem;font-weight:850;border-radius:14px;border:2.5px solid #c4d1c3;box-shadow:0 4px 0 #b6c5b5}
 .train-actions{display:flex;justify-content:center;gap:14px;margin-top:6px}
 .train-actions button{min-height:46px;padding:7px 24px;font-size:1.15rem;font-weight:850;border-radius:14px}
+
+/* 듣고 배달하기: 배달 트럭 도로 및 오두막 우편함 */
+.delivery-route{position:relative;height:68px;border-bottom:8px dashed #c0ae95;margin:8px auto 14px;max-width:1080px;width:100%}
+.delivery-route:before{content:'';position:absolute;bottom:-8px;left:0;right:0;height:4px;background:#968469}
+.delivery-cart{position:absolute;left:0;bottom:2px;transition:left .65s cubic-bezier(.34,1.4,.64,1);transform:translateX(-10%)}
+.delivery-cart svg{height:64px;width:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15))}
+.mailboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1080px;width:100%;margin:auto}
+.mailboxes button{background:#fffaf0;border:3.5px solid #b87b3e;border-radius:28px 28px 18px 18px;padding:16px 14px 14px;font-size:1.48rem;min-height:116px;overflow-wrap:anywhere;box-shadow:0 7px 0 #8c5622;font-weight:850;position:relative;transition:all .15s}
+.mailboxes button:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #8c5622}
+.mailboxes button:before{content:'';display:block;height:9px;background:#8c5622;border-radius:6px;margin:0 14px 12px}
+.mailboxes button.mailbox-delivered{animation:mailbox-dance .55s cubic-bezier(.17,.89,.32,1.3) both;background:linear-gradient(135deg,#e6f8ec,#cbf3d5);border-color:#20875b;box-shadow:0 7px 0 #135d3d}
+@keyframes mailbox-dance{0%{transform:scale(1)}30%{transform:scale(1.1) translateY(-10px) rotate(-3deg)}60%{transform:scale(0.96) translateY(2px) rotate(3deg)}100%{transform:scale(1.02) translateY(0) rotate(0)}}
+
+/* SVG 캐릭터 및 머신 애니메이션 키프레임 */
+@keyframes hand-wave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-24deg)}}
+.char-hand.waving{transform-origin:58px 38px;animation:hand-wave 1.3s ease-in-out infinite}
+@keyframes chest-sparkle-spin{0%{transform:scale(0.6) rotate(0deg);opacity:.4}50%{transform:scale(1.2) rotate(180deg);opacity:1}100%{transform:scale(0.6) rotate(360deg);opacity:.4}}
+.chest-sparkle{animation:chest-sparkle-spin 2.2s linear infinite}
+@keyframes chest-gem-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.chest-gem{animation:chest-gem-bounce 1.5s ease-in-out infinite}
+@keyframes wheel-turn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spin-wheel{animation:wheel-turn 1s linear infinite}
+.spin-wheel.rev{animation:wheel-turn 1s linear infinite reverse}
+@keyframes steam-puff-fly{0%{opacity:0;transform:translate(0,0) scale(.3)}40%{opacity:.85;transform:translate(-8px,-10px) scale(.85)}100%{opacity:0;transform:translate(-20px,-22px) scale(1.3)}}
+.steam-puff-1{animation:steam-puff-fly 1.5s ease-out infinite}
+.steam-puff-2{animation:steam-puff-fly 1.5s .5s ease-out infinite}
+.steam-puff-3{animation:steam-puff-fly 1.5s 1s ease-out infinite}
+@keyframes driver-nod{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-16deg)}}
+.driver-arm{transform-origin:25px 28px;animation:driver-nod 1.4s ease-in-out infinite}
+@keyframes van-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.van-chassis{animation:van-bounce .35s ease-in-out infinite}
+@keyframes exhaust-fly{0%{opacity:0;transform:translate(0,0) scale(.3)}40%{opacity:.75;transform:translate(-8px,-4px) scale(.8)}100%{opacity:0;transform:translate(-18px,-8px) scale(1.2)}}
+.van-exhaust-1{animation:exhaust-fly 1.2s ease-out infinite}
+.van-exhaust-2{animation:exhaust-fly 1.2s .6s ease-out infinite}
 
 /* 배지 모음 화면 최적화 */
 .badges{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:16px}

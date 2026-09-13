@@ -26,8 +26,10 @@ button .icon{margin-right:6px}
 .brand-mark{display:grid;place-items:center;background:var(--green);color:#ffe08a;border-radius:15px;width:44px;height:48px;font-size:34px;transform:rotate(-7deg)}
 .header-actions{display:flex;gap:10px;align-items:center}
 .profiles{display:flex;border-radius:15px;padding:3px;background:#e9eade;gap:3px}
-.profiles button{border:0;background:transparent;min-width:76px;min-height:42px;padding:5px 12px;border-radius:12px;font-size:1rem}
+.profiles button{border:0;background:transparent;min-width:88px;min-height:42px;padding:4px 12px 4px 6px;border-radius:12px;font-size:1rem;display:inline-flex;align-items:center;gap:7px}
+.profile-thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.15);flex-shrink:0}
 .profiles button[aria-pressed=true]{background:var(--green);color:white;box-shadow:0 3px 0 #0c5042}
+.profiles button[aria-pressed=true] .profile-thumb{border-color:#ffe08a;box-shadow:0 0 0 2px #ffe08a,0 2px 5px rgba(0,0,0,0.2)}
 .star-pill{background:#fff0bf;border-color:#ebcf7d;min-width:84px;min-height:42px;padding:5px 14px;border-radius:14px}
 .star-pill span:first-child{color:#a66a02}
 .settings-button{background:transparent;min-height:42px;padding:5px 14px;border-radius:14px}
@@ -63,10 +65,16 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .map-node{position:absolute;transform:translate(-50%,-50%);width:48px;height:48px;min-height:48px;padding:0;border:3px solid white;border-radius:50%;font-size:20px;font-weight:800;background:#fffef7;box-shadow:0 4px 0 #9ab688;color:#446645;z-index:2;touch-action:manipulation;transition:transform .12s,box-shadow .12s}
 .map-node:hover:not(:disabled){transform:translate(-50%,-54%);box-shadow:0 6px 0 #89a677}
 .map-node:active:not(:disabled){transform:translate(-50%,-46%);box-shadow:0 1px 0 #89a677}
-.map-node.current{background:linear-gradient(135deg,#ff9d59,#ea7838);color:#fff;box-shadow:0 0 0 4px #ffffffd9,0 4px 0 #b35622;border-color:#fff8e8;animation:current-bounce 2.2s infinite ease-in-out}
+.map-node.current{background:linear-gradient(135deg,#ff9d59,#ea7838);color:#fff;box-shadow:0 0 0 4px #ffffffd9,0 4px 0 #b35622;border-color:#fff8e8;animation:current-bounce 2.2s infinite ease-in-out;z-index:10}
 .map-node.done{background:linear-gradient(135deg,#1b876f,#106351);color:white;box-shadow:0 4px 0 #0d4a3c}
 @keyframes current-bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-56%) scale(1.08)}}
 .node-label{position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);background:#fffdf2fa;white-space:nowrap;border-radius:6px;font-size:13px;font-weight:700;padding:1px 6px;color:#365840;border:1px solid #d4dfcb;box-shadow:0 2px 4px #00000010}
+.map-avatar-pin{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:20;animation:pin-bounce 2s infinite ease-in-out}
+.pin-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;border:3px solid #ffd54f;box-shadow:0 4px 12px rgba(0,0,0,0.28),0 0 0 2px rgba(255,255,255,0.95);background:#fff;display:flex;align-items:center;justify-content:center}
+.pin-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.pin-tag{background:#fffdf6;color:#a65800;font-size:12px;font-weight:850;padding:1.5px 8px;border-radius:9px;border:1.5px solid #ffd54f;margin-top:-6px;box-shadow:0 2px 5px rgba(0,0,0,0.18);white-space:nowrap;letter-spacing:-.01em}
+.pin-pointer{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ffd54f;margin-top:-1px}
+@keyframes pin-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 .map-legend{display:flex;justify-content:center;gap:14px;font-size:1rem;padding:5px 10px;background:#f7f9ee;flex-wrap:wrap}
 .map-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:#ef915c}
 .map-legend .done-dot{background:var(--green)}

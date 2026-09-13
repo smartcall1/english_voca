@@ -227,31 +227,50 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .game-menu + p.note{background:#f7fbf2;border:2px solid #d7e6ce;border-radius:14px;padding:8px 18px;font-size:0.98rem;font-weight:750;color:#3e6044;text-align:center;margin-top:8px}
 
 /* 게임 진행 화면 (살아있는 캐릭터와 애니메이션 스테이지) */
-.game-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px}
+.game-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:6px}
 .game-top h2{font-size:1.35rem;font-weight:850}
 .game-top button{min-height:42px;padding:5px 16px;font-size:1.02rem;border-radius:14px;font-weight:750}
-.game-stage{background:#eaf1e1;border:3px solid #cbdbbf;border-radius:26px;padding:16px 26px;position:relative;overflow:hidden;box-shadow:0 6px 0 #cedecc;min-height:465px;display:flex;flex-direction:column;justify-content:space-between}
-.game-stage.treasure-stage{background:linear-gradient(180deg,#eef6e6 0%,#dfeece 100%)}
+.game-stage{background:#eaf1e1;border:3px solid #cbdbbf;border-radius:26px;padding:14px 24px 12px;position:relative;overflow:hidden;box-shadow:0 6px 0 #cedecc;min-height:470px;display:flex;flex-direction:column;justify-content:space-between}
+.game-stage.treasure-stage{background:linear-gradient(180deg,#eef8ea 0%,#e2f3dc 100%)}
 .game-stage.train-stage{background:linear-gradient(180deg,#eef4f8 0%,#dce8f0 100%);border-color:#b8cbd6;box-shadow:0 6px 0 #a9bdc9}
 .game-stage.delivery-stage{background:linear-gradient(180deg,#fcf4e8 0%,#f5e5cc 100%);border-color:#dfcdb4;box-shadow:0 6px 0 #cfbc9f}
 
-/* 보물길 탐험: 징검다리 스톤 및 뛰는 캐릭터 */
-.game-path{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;margin:24px 16px 12px}
-.game-path:before{content:'';position:absolute;left:24px;right:24px;top:50%;border-top:12px dashed #b5cca0;z-index:1}
-.game-stop{position:relative;border:3.5px solid white;display:grid;place-items:center;width:58px;height:58px;min-height:58px;border-radius:50%;background:#c7d9b8;flex-shrink:0;font-size:22px;font-weight:850;padding:0;box-shadow:0 4px 0 #95b383;touch-action:manipulation;z-index:2}
-.game-stop.arrived{background:var(--green);color:#fff;box-shadow:0 4px 0 #0d5144}
-.game-stop.here{background:linear-gradient(135deg,#ffb259,#f08b35);color:#fff;box-shadow:0 0 0 5px #ffffffd9,0 4px 0 #ba5d16;animation:current-bounce 2s infinite ease-in-out}
-.game-stop.chest-stop{width:70px;height:70px;background:none;border:none;box-shadow:none;border-radius:0}
-.char-on-stop,.game-char-on-stone{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:52px;height:52px;pointer-events:none;z-index:10;animation:stone-char-hop 1.6s ease-in-out infinite}
-@keyframes stone-char-hop{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-10px) scale(1.05,0.95)}}
+/* 보물길 탐험: 징검다리 개울 트랙과 통통 뛰는 캐릭터 */
+.treasure-river-track{position:relative;background:linear-gradient(180deg,#d5f1e3 0%,#c0e9d9 45%,#98d6c5 100%);border:3px solid #7bc6b3;border-radius:24px;padding:52px 18px 10px;margin:4px auto 6px;max-width:1080px;width:100%;box-shadow:inset 0 4px 10px rgba(0,0,0,.06),0 5px 0 #6ebaa7}
+.river-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:22px}
+.river-flower{position:absolute;font-size:18px;top:10px}
+.river-flower.f1{left:18px;animation:flower-sway 2.6s ease-in-out infinite}
+.river-flower.f2{right:18px;animation:flower-sway 2.6s 1.3s ease-in-out infinite}
+@keyframes flower-sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.river-wave{position:absolute;height:3px;background:rgba(255,255,255,.55);border-radius:3px;top:20px}
+.river-wave.w1{left:15%;width:60px;animation:river-wave-anim 4s linear infinite}
+.river-wave.w2{left:55%;width:80px;animation:river-wave-anim 4.5s 1.5s linear infinite}
+@keyframes river-wave-anim{0%{transform:translateX(-10px);opacity:.2}50%{opacity:.8}100%{transform:translateX(20px);opacity:.2}}
+
+.game-path{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;margin:0 4px;z-index:2}
+.game-path:before{content:'';position:absolute;left:20px;right:20px;top:50%;border-top:8px dashed rgba(255,255,255,.8);z-index:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
+.game-stop{position:relative;border-radius:48% 52% 50% 50% / 50% 48% 52% 50%;width:62px;height:48px;min-height:48px;display:grid;place-items:center;background:linear-gradient(145deg,#ffffff 0%,#e4f0dc 55%,#b8cca9 100%);border:3.5px solid #ffffff;box-shadow:0 6px 0 #769268,0 8px 14px rgba(0,0,0,.1);font-size:22px;font-weight:850;color:#3d5e38;padding:0;touch-action:manipulation;z-index:2;transition:transform .15s,box-shadow .15s}
+.game-stop::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:68px;height:12px;background:rgba(18,74,62,.18);border-radius:50%;z-index:-1}
+.game-stop.arrived{background:linear-gradient(135deg,#24b281,#137756);color:white;border-color:#d6fae9;box-shadow:0 6px 0 #0d4a36}
+.game-stop.here{background:linear-gradient(135deg,#ffb347,#ff7a00);color:white;border-color:#fff3e0;box-shadow:0 0 0 5px rgba(255,255,255,.9),0 6px 0 #b35100;animation:current-bounce 2s infinite ease-in-out}
+.game-stop.chest-stop{width:76px;height:58px;background:linear-gradient(135deg,#fff3b0,#fbc02d);border-color:#fffde7;box-shadow:0 6px 0 #c49000,0 8px 16px rgba(251,192,45,.28)}
+.chest-anchor{display:flex;align-items:center;justify-content:center;transform:translateY(-2px)}
+
+/* 스톤 위 캐릭터 */
+.char-on-stop{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:48px;height:56px;pointer-events:none;z-index:10;animation:char-rock-hop 1.5s ease-in-out infinite}
+@keyframes char-rock-hop{0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg)}50%{transform:translateX(-50%) translateY(-7px) rotate(2deg)}}
+.char-on-stop.char-celebrating{animation:char-yay .6s cubic-bezier(.175,.885,.32,1.275) infinite}
+@keyframes char-yay{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-16px) scale(1.08,0.94)}}
+.jump-bubble{position:absolute;top:-26px;left:50%;transform:translateX(-50%) scale(0);opacity:0;background:linear-gradient(135deg,#ff5722,#e91e63);color:white;font-size:13px;font-weight:900;padding:3px 10px;border-radius:12px;border:2px solid white;box-shadow:0 4px 8px rgba(0,0,0,.25);white-space:nowrap;pointer-events:none;z-index:20;transition:transform .35s cubic-bezier(.175,.885,.32,1.3),opacity .35s}
+.jump-bubble.pop{transform:translateX(-50%) scale(1);opacity:1}
 .game-stop.stone-landing{animation:stone-land .45s cubic-bezier(.17,.89,.32,1.3) both}
-@keyframes stone-land{0%{transform:scale(.5) translateY(-30px)}70%{transform:scale(1.2,0.85) translateY(4px)}100%{transform:scale(1) translateY(0)}}
+@keyframes stone-land{0%{transform:scale(.5) translateY(-26px)}70%{transform:scale(1.2,0.85) translateY(3px)}100%{transform:scale(1) translateY(0)}}
 
 /* 문제 프롬프트 */
-.game-prompt{background:#ffffff;border-radius:20px;padding:10px 22px;text-align:center;margin:2px auto 10px;border:2px solid #dde7d4;box-shadow:0 3px 0 #d4e2cb;max-width:1080px;width:100%}
+.game-prompt{background:#ffffff;border-radius:20px;padding:8px 22px;text-align:center;margin:2px auto 8px;border:2px solid #dde7d4;box-shadow:0 3px 0 #d4e2cb;max-width:1080px;width:100%}
 .game-prompt .question{margin:2px 0;font-size:1.95rem;font-weight:850}
 .game-stage .choices{max-width:1080px;width:100%;margin:auto;gap:14px}
-.game-stage .choices button{min-height:76px;font-size:1.52rem;font-weight:850;padding:8px 18px;border-radius:18px;box-shadow:0 5px 0 #beceb8;border:2.5px solid #cedbca;background:#fafdf8}
+.game-stage .choices button{min-height:74px;font-size:1.52rem;font-weight:850;padding:8px 18px;border-radius:18px;box-shadow:0 5px 0 #beceb8;border:2.5px solid #cedbca;background:#fafdf8}
 
 /* 문장 기차: 기관차 및 연결 마차 */
 .train-track{display:flex;gap:12px;min-height:86px;align-items:center;flex-wrap:wrap;padding:10px 20px;border-bottom:8px double #6c8894;background:#eff6f8;border-radius:20px;max-width:1080px;width:100%;margin:auto;box-shadow:inset 0 2px 4px rgba(0,0,0,.05)}
@@ -264,18 +283,21 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 .wagon-box{font-size:1.24rem;font-weight:850;border:2.5px solid #4a7596;border-radius:14px;background:linear-gradient(180deg,#ffffff 0%,#dbe9f7 100%);padding:8px 18px;min-height:48px;position:relative;box-shadow:0 4px 0 #6d96b8;color:#183d58;display:inline-block}
 .wagon-wheels{position:absolute;bottom:-6px;left:0;right:0;display:flex;justify-content:space-around;pointer-events:none}
 .w-wheel{width:12px;height:12px;background:#354d5b;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 2px rgba(0,0,0,.3)}
-.train-bank{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px auto 4px;max-width:1080px}
+.train-bank{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px auto 4px;max-width:1080px}
 .train-bank button{min-height:48px;padding:7px 20px;font-size:1.2rem;font-weight:850;border-radius:14px;border:2.5px solid #c4d1c3;box-shadow:0 4px 0 #b6c5b5}
-.train-actions{display:flex;justify-content:center;gap:14px;margin-top:6px}
-.train-actions button{min-height:46px;padding:7px 24px;font-size:1.15rem;font-weight:850;border-radius:14px}
+.train-actions{display:flex;justify-content:center;gap:14px;margin-top:4px}
+.train-actions button{min-height:44px;padding:6px 22px;font-size:1.15rem;font-weight:850;border-radius:14px}
 
 /* 듣고 배달하기: 배달 트럭 도로 및 오두막 우편함 */
-.delivery-route{position:relative;height:68px;border-bottom:8px dashed #c0ae95;margin:8px auto 14px;max-width:1080px;width:100%}
+.delivery-route{position:relative;height:68px;border-bottom:8px dashed #c0ae95;margin:6px auto 10px;max-width:1080px;width:100%}
 .delivery-route:before{content:'';position:absolute;bottom:-8px;left:0;right:0;height:4px;background:#968469}
 .delivery-cart{position:absolute;left:0;bottom:2px;transition:left .65s cubic-bezier(.34,1.4,.64,1);transform:translateX(-10%)}
 .delivery-cart svg{height:64px;width:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15))}
+.flying-parcel{position:absolute;bottom:20px;left:50%;font-size:32px;z-index:15;pointer-events:none}
+.flying-parcel.parachuting{animation:parcel-fly .7s cubic-bezier(.25,.46,.45,.94) forwards}
+@keyframes parcel-fly{0%{transform:translate(0,0) scale(.5);opacity:0}35%{transform:translate(40px,-40px) scale(1.2) rotate(15deg);opacity:1}100%{transform:translate(100px,8px) scale(.8) rotate(0);opacity:0}}
 .mailboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1080px;width:100%;margin:auto}
-.mailboxes button{background:#fffaf0;border:3.5px solid #b87b3e;border-radius:28px 28px 18px 18px;padding:16px 14px 14px;font-size:1.48rem;min-height:116px;overflow-wrap:anywhere;box-shadow:0 7px 0 #8c5622;font-weight:850;position:relative;transition:all .15s}
+.mailboxes button{background:#fffaf0;border:3.5px solid #b87b3e;border-radius:28px 28px 18px 18px;padding:16px 14px 14px;font-size:1.48rem;min-height:114px;overflow-wrap:anywhere;box-shadow:0 7px 0 #8c5622;font-weight:850;position:relative;transition:all .15s}
 .mailboxes button:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #8c5622}
 .mailboxes button:before{content:'';display:block;height:9px;background:#8c5622;border-radius:6px;margin:0 14px 12px}
 .mailboxes button.mailbox-delivered{animation:mailbox-dance .55s cubic-bezier(.17,.89,.32,1.3) both;background:linear-gradient(135deg,#e6f8ec,#cbf3d5);border-color:#20875b;box-shadow:0 7px 0 #135d3d}
@@ -283,11 +305,15 @@ main{max-width:1390px;margin:0 auto;padding:10px 32px 12px;outline:none}
 
 /* SVG 캐릭터 및 머신 애니메이션 키프레임 */
 @keyframes hand-wave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-24deg)}}
-.char-hand.waving{transform-origin:58px 38px;animation:hand-wave 1.3s ease-in-out infinite}
+.char-arm-r.waving{transform-origin:46px 38px;animation:hand-wave 1.3s ease-in-out infinite}
 @keyframes chest-sparkle-spin{0%{transform:scale(0.6) rotate(0deg);opacity:.4}50%{transform:scale(1.2) rotate(180deg);opacity:1}100%{transform:scale(0.6) rotate(360deg);opacity:.4}}
 .chest-sparkle{animation:chest-sparkle-spin 2.2s linear infinite}
 @keyframes chest-gem-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .chest-gem{animation:chest-gem-bounce 1.5s ease-in-out infinite}
+@keyframes chest-coin-toss{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.1)}}
+.chest-coin{animation:chest-coin-toss 1.6s ease-in-out infinite}
+.chest-coin.c2{animation-delay:.3s}
+.chest-coin.c3{animation-delay:.6s}
 @keyframes wheel-turn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .spin-wheel{animation:wheel-turn 1s linear infinite}
 .spin-wheel.rev{animation:wheel-turn 1s linear infinite reverse}
@@ -337,10 +363,7 @@ dialog-title{display:flex;align-items:center;justify-content:space-between;gap:1
 .skip-link:focus{width:auto;height:auto;clip-path:none}
 .region-tabs small,.map-caption span,.map-legend,.node-label,.word-list button{font-size:22px}
 @keyframes train-depart{to{transform:translateX(115%);opacity:0}}
-@keyframes hop{50%{transform:translateY(-14px)}}
 .train-track.departing{animation:train-depart 1.1s ease-in forwards}
-.game-stop.here{animation:hop .5s ease-out}
-.mailboxes button.correct{background:#d9f0df;border-color:#2c845f}
 .mailboxes button.wrong{background:#ffeadf;border-color:#cd754f}
 @media(min-width:1600px){main{padding-top:24px}}
 @media(max-width:1150px){.header{padding:10px 18px}.map-layout{grid-template-columns:minmax(0,1fr) 260px}.side-card{padding:14px}.nav{justify-content:flex-start;overflow-x:auto}.nav button{font-size:1rem;padding:6px 10px}main{padding:12px 18px 24px}.learning-layout{grid-template-columns:minmax(0,1fr) 240px}.region-tabs button{font-size:1rem}.game-description{padding:14px!important}.badges{grid-template-columns:repeat(3,1fr)}}

@@ -679,63 +679,112 @@
   function result(title,description,next,label){return `<div class="result"><div class="result-mark" aria-hidden="true">✦</div><h2>${title}</h2><p>${description}</p>${C.isCleared(profile,day)?`<p>네 가지 미션 완료! Day ${day}의 탐험 도장이 찍혔어요.</p>`:''}<div class="finish-actions"><button class="primary" data-action="tab" data-value="${next}">${label}</button>${C.isCleared(profile,day)&&day<50?'<button data-action="next-day">다음 날 탐험 →</button>':''}</div></div>`;}
   function characterSvg(id, state = 'idle') {
     const isA = id === 'aiden';
-    const hair = isA ? '#3e2723' : '#6d4c41';
+    const hair = isA ? '#4a2e18' : '#704214';
     const shirt = isA ? '#197564' : '#e65100';
-    const cap = isA ? '#2e7d32' : '#0277bd';
+    const pants = isA ? '#2e4d44' : '#455a64';
+    const cap = isA ? '#257942' : '#0277bd';
+    const capBand = isA ? '#ffd54f' : '#ffb74d';
+    const feather = isA ? '#ffb300' : '#e53935';
     const badge = isA ? '#ffd54f' : '#81c784';
-    return `<svg class="game-char ${state} char-${id}" viewBox="0 0 56 68" width="48" height="58" aria-hidden="true">
-      <ellipse cx="28" cy="64" rx="14" ry="3.5" fill="#00000028" class="char-shadow"/>
-      <g class="char-main">
-        <path d="M21 52v8m14-8v8" stroke="#4e342e" stroke-width="4" stroke-linecap="round"/>
-        <ellipse cx="19" cy="61" rx="4" ry="2.5" fill="#2e1c14"/>
-        <ellipse cx="37" cy="61" rx="4" ry="2.5" fill="#2e1c14"/>
-        <rect x="18" y="32" width="20" height="21" rx="6" fill="${shirt}"/>
-        <rect x="22" y="33" width="3" height="19" rx="1.5" fill="#ffffff44"/>
-        <rect x="31" y="33" width="3" height="19" rx="1.5" fill="#ffffff44"/>
-        <circle cx="28" cy="42" r="3" fill="${badge}"/>
-        <path class="char-arm-l" d="M18 36c-4 3-7 8-5 13" stroke="${shirt}" stroke-width="4" stroke-linecap="round" fill="none"/>
-        <path class="char-arm-r" d="M38 36c4 3 7 8 5 13" stroke="${shirt}" stroke-width="4" stroke-linecap="round" fill="none"/>
-        <circle cx="13" cy="50" r="2.5" fill="#ffccbc"/>
-        <circle cx="43" cy="50" r="2.5" fill="#ffccbc"/>
-        <circle cx="28" cy="21" r="14" fill="#ffd8c0"/>
-        <circle cx="20" cy="24" r="3" fill="#ff8a80" opacity=".6"/>
-        <circle cx="36" cy="24" r="3" fill="#ff8a80" opacity=".6"/>
-        <circle cx="23" cy="20" r="2.2" fill="#263238"/>
-        <circle cx="33" cy="20" r="2.2" fill="#263238"/>
-        <circle cx="22" cy="19" r="0.8" fill="#fff"/>
-        <circle cx="32" cy="19" r="0.8" fill="#fff"/>
-        <path d="M25 25q3 3 6 0" stroke="#bf360c" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-        <path d="M15 18c-1-8 6-13 13-13s14 5 13 13c-2-4-5-6-10-6-4 0-7 2-10 4-2-2-4-4-6-8z" fill="${hair}"/>
-        <path d="M15 13c2-7 10-9 18-7 5 1 8 5 8 8z" fill="${cap}"/>
-        <path d="M13 14q15-4 30 0" stroke="${cap}" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <circle cx="27" cy="8" r="2.5" fill="${badge}"/>
+    return `<svg class="game-char ${state} char-${id}" viewBox="0 0 64 74" width="56" height="65" aria-hidden="true">
+      <defs>
+        <radialGradient id="char-shadow-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="32" cy="70" rx="18" ry="4" fill="url(#char-shadow-grad)" class="char-shadow"/>
+      <g class="char-body-group">
+        <!-- 다리와 신발 -->
+        <g class="char-legs">
+          <rect x="22" y="52" width="6" height="12" rx="3" fill="${pants}"/>
+          <rect x="36" y="52" width="6" height="12" rx="3" fill="${pants}"/>
+          <ellipse cx="23" cy="65" rx="5.5" ry="3.5" fill="#3e2723"/>
+          <ellipse cx="41" cy="65" rx="5.5" ry="3.5" fill="#3e2723"/>
+          <circle cx="21" cy="64" r="1.2" fill="#d7ccc8"/>
+          <circle cx="39" cy="64" r="1.2" fill="#d7ccc8"/>
+        </g>
+        <!-- 가방 끈 -->
+        <path d="M19 36l3 18m23-18l-3 18" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- 몸통과 옷 -->
+        <rect x="18" y="34" width="28" height="22" rx="7" fill="${shirt}"/>
+        <!-- 멜빵 -->
+        <rect x="22" y="34" width="3.5" height="20" rx="1.5" fill="#ffffff44"/>
+        <rect x="38.5" y="34" width="3.5" height="20" rx="1.5" fill="#ffffff44"/>
+        <!-- 가슴 탐험 배지 -->
+        <circle cx="32" cy="44" r="4" fill="${badge}" stroke="#fff" stroke-width="1.2"/>
+        <polygon points="32,41 33.2,43.5 36,43.8 34,45.8 34.5,48.5 32,47.2 29.5,48.5 30,45.8 28,43.8 30.8,43.5" fill="#e65100"/>
+        <!-- 팔과 손 -->
+        <g class="char-arms">
+          <path class="char-arm-l" d="M18 38c-5 4-8 10-6 15" stroke="${shirt}" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <path class="char-arm-r ${state === 'waving' ? 'waving' : ''}" d="M46 38c5 4 8 10 6 15" stroke="${shirt}" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <circle cx="12" cy="53" r="3.2" fill="#ffd8c0"/>
+          <circle cx="52" cy="53" r="3.2" fill="#ffd8c0" class="char-hand-r"/>
+        </g>
+        <!-- 머리와 얼굴 -->
+        <circle cx="32" cy="22" r="16" fill="#ffd8c0"/>
+        <!-- 귀 -->
+        <circle cx="16" cy="23" r="3.5" fill="#ffccbc"/>
+        <circle cx="48" cy="23" r="3.5" fill="#ffccbc"/>
+        <!-- 발그레한 볼터치 -->
+        <circle cx="22" cy="26" r="3.5" fill="#ff8a80" opacity="0.65"/>
+        <circle cx="42" cy="26" r="3.5" fill="#ff8a80" opacity="0.65"/>
+        <!-- 초롱초롱한 눈 -->
+        <ellipse cx="26" cy="21" rx="2.8" ry="3.5" fill="#212121"/>
+        <ellipse cx="38" cy="21" rx="2.8" ry="3.5" fill="#212121"/>
+        <circle cx="25" cy="19.5" r="1.2" fill="#ffffff"/>
+        <circle cx="37" cy="19.5" r="1.2" fill="#ffffff"/>
+        <circle cx="27" cy="22.5" r="0.6" fill="#ffffff"/>
+        <circle cx="39" cy="22.5" r="0.6" fill="#ffffff"/>
+        <!-- 웃는 입 -->
+        <path d="M28 27q4 4 8 0" stroke="#bf360c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        <!-- 머리카락 -->
+        <path d="M17 19c-1-10 8-15 15-15s16 5 15 15c-3-5-6-7-12-7-5 0-9 2-12 5-2-3-4-5-6-8z" fill="${hair}"/>
+        <!-- 탐험가 모자 -->
+        <path d="M16 14c3-9 12-11 22-9 6 1 10 6 10 9z" fill="${cap}"/>
+        <path d="M13 15q19-5 38 0" stroke="${cap}" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <path d="M16 13q16-4 32 0" stroke="${capBand}" stroke-width="2" fill="none"/>
+        <!-- 모자 깃털 장식 -->
+        <path d="M42 12c4-8 12-11 14-8s-5 9-14 9z" fill="${feather}"/>
       </g>
     </svg>`;
   }
 
   function treasureChestSvg(isOpen = false) {
-    return `<svg class="treasure-chest-svg ${isOpen ? 'open' : ''}" viewBox="0 0 54 48" width="52" height="46" aria-hidden="true">
-      <ellipse cx="27" cy="45" rx="20" ry="3" fill="#00000028"/>
-      <path d="M6 22h42v20a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4Z" fill="#8d5b2d" stroke="#503014" stroke-width="2.5"/>
-      <rect x="13" y="22" width="5" height="24" fill="#c99738"/>
-      <rect x="36" y="22" width="5" height="24" fill="#c99738"/>
+    return `<svg class="treasure-chest-svg ${isOpen ? 'open' : ''}" viewBox="0 0 68 58" width="62" height="52" aria-hidden="true">
+      <ellipse cx="34" cy="54" rx="26" ry="4" fill="#00000030"/>
+      <!-- 상자 본체 -->
+      <path d="M8 26h52v24a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5Z" fill="#8d5524" stroke="#4a2c10" stroke-width="3"/>
+      <!-- 가죽/골드 스트랩 -->
+      <rect x="16" y="26" width="6" height="28" fill="#e5a93b" stroke="#7a4f0d" stroke-width="1.5"/>
+      <rect x="46" y="26" width="6" height="28" fill="#e5a93b" stroke="#7a4f0d" stroke-width="1.5"/>
       ${isOpen ? `
+        <!-- 눈부신 보물 대폭발 -->
         <g class="gold-burst">
-          <circle cx="20" cy="18" r="4" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-          <circle cx="27" cy="15" r="5" fill="#ffecb3" stroke="#b8860b" stroke-width="1"/>
-          <circle cx="34" cy="18" r="4" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-          <polygon points="27,9 30,15 24,15" fill="#e91e63"/>
-          <polygon points="18,12 21,16 15,16" fill="#00e676"/>
-          <polygon points="36,11 39,15 33,15" fill="#00e5ff"/>
-          <path d="M27 5l2-4 2 4 4 2-4 2-2 4-2-4-4-2z" fill="#fff" class="sparkle s1"/>
-          <path d="M12 9l1.5-3 1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5z" fill="#fff" class="sparkle s2"/>
-          <path d="M40 7l1.5-3 1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5z" fill="#fff" class="sparkle s3"/>
+          <circle cx="34" cy="20" r="16" fill="radial-gradient(circle,#fff59d,#ffb300)" opacity="0.6"/>
+          <!-- 황금 코인들 -->
+          <circle cx="24" cy="20" r="5" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" class="chest-coin c1"/>
+          <circle cx="34" cy="16" r="6" fill="#ffe082" stroke="#b8860b" stroke-width="1.5" class="chest-coin c2"/>
+          <circle cx="44" cy="20" r="5" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" class="chest-coin c3"/>
+          <!-- 알록달록 보석들 -->
+          <polygon points="34,8 39,16 29,16" fill="#e91e63" stroke="#880e4f" stroke-width="1" class="chest-gem g1"/>
+          <polygon points="21,12 26,18 17,18" fill="#00e676" stroke="#1b5e20" stroke-width="1" class="chest-gem g2"/>
+          <polygon points="47,11 52,17 43,17" fill="#00e5ff" stroke="#006064" stroke-width="1" class="chest-gem g3"/>
+          <polygon points="34,2 36,7 32,7" fill="#ab47bc" class="chest-gem g4"/>
+          <!-- 반짝이는 별빛들 -->
+          <path d="M34 0l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#ffffff" class="chest-sparkle sp1"/>
+          <path d="M14 6l1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5z" fill="#fff59d" class="chest-sparkle sp2"/>
+          <path d="M54 5l1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5z" fill="#fff59d" class="chest-sparkle sp3"/>
         </g>
-        <path d="M4 22L12 6h30l8 16Z" fill="#a06836" stroke="#503014" stroke-width="2.5" class="chest-lid open"/>
+        <!-- 활짝 열린 뚜껑 -->
+        <path d="M6 26L16 6h36l10 20Z" fill="#aa6c35" stroke="#4a2c10" stroke-width="3" class="chest-lid open"/>
       ` : `
-        <path d="M4 22C4 13 14 8 27 8s23 5 23 14Z" fill="#a06836" stroke="#503014" stroke-width="2.5" class="chest-lid"/>
-        <rect x="23" y="19" width="8" height="10" rx="2" fill="#ffd54f" stroke="#b27f00" stroke-width="1.5"/>
-        <circle cx="27" cy="23" r="1.5" fill="#3e2723"/>
+        <!-- 닫힌 뚜껑 -->
+        <path d="M5 26C5 15 18 9 34 9s29 6 29 17Z" fill="#a4652f" stroke="#4a2c10" stroke-width="3" class="chest-lid"/>
+        <!-- 황금 자물쇠 -->
+        <rect x="29" y="22" width="10" height="12" rx="3" fill="#ffd54f" stroke="#b27f00" stroke-width="1.8"/>
+        <circle cx="34" cy="27" r="2" fill="#3e2723"/>
+        <path d="M34 29v3" stroke="#3e2723" stroke-width="1.8"/>
       `}
     </svg>`;
   }
@@ -849,8 +898,16 @@
       game.choices=C.choices(w,data().words,game.mode==='delivery'?3:4);
       const prompt=game.mode==='delivery'?`<p>소리를 듣고, 같은 단어의 우편함을 골라요.</p><button class="primary" data-action="game-listen">${icon('sound')}소포 이름 듣기</button><button data-action="game-meaning">뜻 힌트</button><p id="meaning-hint" hidden>${esc(w.ko)}</p>`:`<p>이 뜻의 단어를 골라 길을 열어요.</p><h2 class="question">${esc(w.ko)}</h2>`;
       const scene=game.mode==='treasure'
-        ? `<div class="game-path" aria-label="보물까지 ${6-game.index}걸음">${Array.from({length:7},(_,i)=>`<span class="game-stop ${i<game.index?'arrived':''} ${i===game.index?'here':''}">${i===6?treasureChestSvg(game.index===6):i<game.index?'✓':i===game.index?`<div class="char-on-stop">${characterSvg(profileId,'standing')}</div><span>${i+1}</span>`:i+1}</span>`).join('')}</div>`
-        : `<div class="delivery-route" aria-label="${game.index}개 배달 완료"><div class="delivery-road-line"></div><span class="delivery-cart" style="left:${game.index/6*82}%">${deliveryVanSvg(profileId)}</span></div>`;
+        ? `<div class="treasure-river-track" aria-label="보물까지 ${6-game.index}걸음">
+            <div class="river-decor">
+              <span class="river-flower f1">🌸</span>
+              <span class="river-wave w1"></span>
+              <span class="river-wave w2"></span>
+              <span class="river-flower f2">🍀</span>
+            </div>
+            <div class="game-path">${Array.from({length:7},(_,i)=>`<span class="game-stop ${i<game.index?'arrived':''} ${i===game.index?'here':''} ${i===6?'chest-stop':''}">${i===6?`<div class="chest-anchor">${treasureChestSvg(game.index===6)}</div>`:i<game.index?'✓':i===game.index?`<div class="char-on-stop">${characterSvg(profileId,'standing')}<span class="jump-bubble">★ 정답!</span></div><span class="stone-num">${i+1}</span>`:`<span class="stone-num">${i+1}</span>`}</span>`).join('')}</div>
+          </div>`
+        : `<div class="delivery-route" aria-label="${game.index}개 배달 완료"><div class="delivery-road-line"></div><span class="delivery-cart" style="left:${game.index/6*82}%">${deliveryVanSvg(profileId)}</span><div class="flying-parcel" hidden>📦</div></div>`;
       content=scene+`<div class="game-prompt">${prompt}</div><div class="${game.mode==='delivery'?'mailboxes':'choices'}">${game.choices.map((w,i)=>`<button data-action="game-answer" data-value="${i}" lang="en-AU">${esc(w.en)}</button>`).join('')}</div>`;
     }
     return sessionHeading(titles[game.mode],game.mode==='train'?'말을 하나씩 누르면 기차에 연결돼요.':'틀려도 괜찮아요. 다시 골라 길을 이어 가요.')+`<div class="game-top"><h2>${game.index+1} / ${game.queue.length} 미션</h2><button data-action="game-menu">다른 놀이 고르기</button></div><div class="game-stage ${game.mode}-stage">${content}<p id="feedback" class="feedback" role="status"></p><div class="train-actions"><button id="game-next" class="primary" data-action="game-next" hidden>다음 미션으로 ${icon('arrow')}</button></div></div>`;
@@ -863,16 +920,36 @@
     if(game.mode==='train'){
       chime('train-whistle');
       feedback('칙칙폭폭! 문장 기차 출발!');
+      burstConfetti(window.innerWidth*0.5, window.innerHeight*0.38, 45);
       $('train-track').classList.add('departing');
     } else if(game.mode==='delivery'){
       chime('delivery-horn');
       feedback('빵빵! 소포를 우편함에 배달했어요!');
+      burstConfetti(window.innerWidth*0.5, window.innerHeight*0.4, 35);
       document.querySelector('.delivery-cart').style.left=`${(game.index+1)/6*82}%`;
       const btn=document.querySelector('.mailboxes button.correct');
-      if(btn) btn.classList.add('mailbox-delivered');
+      if(btn) {
+        btn.classList.add('mailbox-delivered');
+        const parcel=document.querySelector('.flying-parcel');
+        if(parcel) {
+          parcel.hidden=false;
+          parcel.classList.add('parachuting');
+        }
+      }
     } else if(game.mode==='treasure'){
       chime('hop');
+      burstConfetti(window.innerWidth*0.5, window.innerHeight*0.32, 40);
       feedback(game.index+1===6?'만세! 반짝이는 보물상자를 찾았어요!':'폴짝! 맞았어요! 다음 징검다리로 가요.');
+      const curChar = document.querySelector('.char-on-stop');
+      if(curChar) {
+        curChar.classList.add('char-celebrating');
+        const bubble = curChar.querySelector('.jump-bubble');
+        if(bubble) {
+          const praises = ['★ 딩동댕!', '★ 완벽해요!', '★ 슈퍼 점프!', '★ 대단해요!', '★ 멋져요!'];
+          bubble.textContent = praises[game.index % praises.length];
+          bubble.classList.add('pop');
+        }
+      }
       const stops=document.querySelectorAll('.game-stop');
       stops[game.index].classList.remove('here');
       stops[game.index].classList.add('arrived');
@@ -882,6 +959,7 @@
       }
       if(game.index+1===6){
         chime('bonus-slam');
+        launchConfetti(true);
       }
     } else {
       chime();
